@@ -1,7 +1,6 @@
 package qube;
 
 import processing.core.PApplet;
-import processing.core.PVector;
 
 import static processing.core.PApplet.*;
 
@@ -10,8 +9,8 @@ public class Camera
     public static final float DRAG_SENSITIVITY = 0.8f;
     public static final float SCROLL_SENSITIVITY = 15.0f;
 
-    private int distanceFromCenter_ = 0;
-    private int rotY_, rotZ_;
+    private int distanceFromCenter_ = 250;
+    private int mdx_, mdy_;
 
     /**
      * Notifies the camera about mouse dragging.
@@ -20,8 +19,8 @@ public class Camera
      */
     public void notifyMouseDragged(PApplet canvas)
     {
-        rotY_ -= (canvas.mouseX - canvas.pmouseX) * DRAG_SENSITIVITY;
-        rotZ_ -= (canvas.mouseY - canvas.pmouseY) * DRAG_SENSITIVITY;
+        mdx_ -= (canvas.mouseX - canvas.pmouseX) * DRAG_SENSITIVITY;
+        mdy_ -= (canvas.mouseY - canvas.pmouseY) * DRAG_SENSITIVITY;
     }
 
     /**
@@ -41,16 +40,13 @@ public class Camera
      */
     public void draw(PApplet canvas)
     {
-        float radY = radians(rotY_);
-        float radZ = radians(rotZ_);
+        float rx = radians(mdx_);
+        float ry = radians(mdy_);
 
-        float z = distanceFromCenter_ * cos(radY);
-        float x = distanceFromCenter_ * sin(radY);
-        float y = distanceFromCenter_ * sin(radZ);
+        float z = distanceFromCenter_ * cos(rx);
+        float x = distanceFromCenter_ * sin(rx);
+        float y = distanceFromCenter_ * sin(ry);
 
-        PVector pos = new PVector(x, y, z);
-        pos.add(pos.copy().normalize().mult(distanceFromCenter_ * cos(radZ)));
-
-        canvas.camera(pos.x, pos.y, pos.z, 0, 0, 0, 0, 1, 0);
+        canvas.camera(x, y, z, 0, 0, 0, 0, 1, 0);
     }
 }

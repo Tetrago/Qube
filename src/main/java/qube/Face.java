@@ -1,8 +1,6 @@
 package qube;
 
 import processing.core.PApplet;
-import processing.core.PConstants;
-import processing.core.PVector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,9 +64,10 @@ public class Face
             cache.remove(0);
         }
 
-        for(int i = 0; i < borderSeq_.length; ++i)
+        int index = 0;
+        for(int i : borderSeq_)
         {
-            colors_[i] = cache.get(i);
+            colors_[i] = cache.get(index++);
         }
     }
 
@@ -143,7 +142,6 @@ public class Face
     public void draw(PApplet canvas)
     {
         canvas.pushMatrix();
-        canvas.rectMode(PConstants.CENTER);
         canvas.stroke(10);
 
         for(int y = 0; y < dimensions_; ++y)

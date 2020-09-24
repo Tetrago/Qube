@@ -40,13 +40,24 @@ public class Cube
             PVector rot = side.getRotation();
 
             canvas.pushMatrix();
-            canvas.translate(pos.x * TILE_SIZE * (dimensions_ * 0.5f), pos.y * TILE_SIZE * (dimensions_ * 0.5f), pos.z * TILE_SIZE * (dimensions_ * 0.5f));
+            canvas.translate(pos.x * TILE_SIZE * dimensions_ * 0.5f, pos.y * TILE_SIZE * dimensions_ * -0.5f, pos.z * TILE_SIZE * dimensions_ * 0.5f);
             canvas.rotate(side.getAngle(), rot.x, rot.y, rot.z);
 
             faces_[side.ordinal()].draw(canvas);
 
             canvas.popMatrix();
         }
+    }
+
+    /**
+     * Rotates a face.
+     *
+     * @param   side    The side to rotate.
+     * @param   ccw     Whether to rotate counterclockwise.
+     */
+    public void rotate(Side side, boolean ccw)
+    {
+        faces_[side.ordinal()].rotate(ccw);
     }
 
     public int getDimensions() { return dimensions_; }

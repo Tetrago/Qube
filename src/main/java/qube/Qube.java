@@ -24,6 +24,12 @@ public class Qube extends PApplet
     }
 
     @Override
+    public void setup()
+    {
+
+    }
+
+    @Override
     public void mouseDragged()
     {
         camera_.notifyMouseDragged(this);
