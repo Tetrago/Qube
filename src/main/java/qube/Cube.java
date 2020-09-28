@@ -29,6 +29,25 @@ public class Cube
     }
 
     /**
+     * Scrambles a cube.
+     *
+     * @param   min Minimum turns.
+     * @param   max Maximum turns.
+     */
+    public void scramble(int min, int max)
+    {
+        int num = (int)(Math.random() * max - min);
+
+        for(int i = 0; i < num; ++i)
+        {
+            Side side = Side.values()[(int)(Math.random() * 6)];
+            boolean ccw = (int)(Math.random() * 2) == 1;
+
+            rotate(side, ccw);
+        }
+    }
+
+    /**
      * Draws cube.
      *
      * @param   canvas    Canvas to draw on.

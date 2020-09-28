@@ -4,7 +4,7 @@ import processing.core.PConstants;
 
 public class User
 {
-    private Cube cube_;
+    private final Cube cube_;
     private boolean ccw_ = false;
 
     public User(Cube cube)
@@ -44,6 +44,9 @@ public class User
             break;
         case 'l':
             cube_.rotate(Side.Left, ccw_);
+            break;
+        case 's':
+            cube_.scramble(100, 200);
             break;
         }
     }

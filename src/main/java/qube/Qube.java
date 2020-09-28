@@ -15,7 +15,7 @@ public class Qube extends PApplet
     }
 
     private Camera camera_ = new Camera();
-    private Cube cube_ = new Cube(3);
+    private Cube cube_ = new Cube(10);
     private User user_;
 
     public Qube()
