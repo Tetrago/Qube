@@ -16,17 +16,17 @@ public class Qube extends PApplet
 
     private Camera camera_ = new Camera();
     private Cube cube_ = new Cube(3);
+    private User user_;
+
+    public Qube()
+    {
+        user_ = new User(cube_);
+    }
 
     @Override
     public void settings()
     {
         size(WIDTH, HEIGHT, PConstants.P3D);
-    }
-
-    @Override
-    public void setup()
-    {
-
     }
 
     @Override
@@ -39,6 +39,18 @@ public class Qube extends PApplet
     public void mouseWheel(MouseEvent event)
     {
         camera_.notifyMouseWheel(event.getCount());
+    }
+
+    @Override
+    public void keyPressed()
+    {
+        user_.keyPressed(key, keyCode);
+    }
+
+    @Override
+    public void keyReleased()
+    {
+        user_.keyReleased(key, keyCode);
     }
 
     @Override

@@ -5,10 +5,9 @@ import processing.core.PVector;
 
 public class Cube
 {
-    public static final int TILE_SIZE = 100;
-
     private int dimensions_;
     private Face[] faces_;
+    private final int tileSize_;
 
     /**
      * Constructs a cube with faces.
@@ -25,6 +24,8 @@ public class Cube
         {
             faces_[i] = new Face(dimensions, colors[i]);
         }
+
+        tileSize_ = Face.TARGET_SIDE_SIZE / dimensions;
     }
 
     /**
@@ -40,13 +41,58 @@ public class Cube
             PVector rot = side.getRotation();
 
             canvas.pushMatrix();
-            canvas.translate(pos.x * TILE_SIZE * dimensions_ * 0.5f, pos.y * TILE_SIZE * dimensions_ * -0.5f, pos.z * TILE_SIZE * dimensions_ * 0.5f);
+            canvas.translate(pos.x * tileSize_ * dimensions_ * 0.5f, pos.y * tileSize_ * dimensions_ * -0.5f, pos.z * tileSize_ * dimensions_ * 0.5f);
             canvas.rotate(side.getAngle(), rot.x, rot.y, rot.z);
 
             faces_[side.ordinal()].draw(canvas);
 
             canvas.popMatrix();
         }
+    }
+
+    private static class DirectionOrder
+    {
+        private Side from_, to_;
+        private Side fromSide_, toSide_;
+        private boolean reverse_;
+
+        public DirectionOrder(Side from, Side fromSide, Side to, Side toSide, boolean reverse)
+        {
+            from_ = from;
+            to_ = to;
+            fromSide_ = fromSide;
+            toSide_ = toSide;
+            reverse_ = reverse;
+        }
+
+        /**
+         * Caches the colors to set.
+         *
+         * @param   cube    Cube to get from.
+         *
+         * @return          Returns colors of from {@link Side}.
+         */
+        public Color[] cache(Cube cube)
+        {
+            return cube.faces_[from_.ordinal()].get(fromSide_);
+        }
+
+        /**
+         * Sets the specified {@code colors} to the side.
+         *
+         * @param   cube    Cube to set to.
+         * @param   colors  {@link Color} array to use.
+         */
+        public void execute(Cube cube, Color[] colors)
+        {
+            cube.faces_[to_.ordinal()].set(toSide_, colors, reverse_);
+        }
+
+        public Side getFrom() { return from_; }
+        public Side getTo() { return to_; }
+        public Side getFromSide() { return fromSide_; }
+        public Side getToSide() { return toSide_; }
+        public boolean isReverse() { return reverse_; }
     }
 
     /**
@@ -58,6 +104,96 @@ public class Cube
     public void rotate(Side side, boolean ccw)
     {
         faces_[side.ordinal()].rotate(ccw);
+
+        internalRotate(side);
+
+        if(ccw)
+        {
+            for(int i = 0; i < 2; ++i)
+            {
+                internalRotate(side);
+            }
+        }
+    }
+
+    /**
+     * Rotates the edges of a side.
+     *
+     * @param   side    Side edges to rotate.
+     */
+    private void internalRotate(Side side)
+    {
+        DirectionOrder[] orders = getRotateOrders(side);
+        Color[][] colors = new Color[4][];
+
+        for(int i = 0; i < colors.length; ++i)
+        {
+            colors[i] = orders[i].cache(this);
+        }
+
+        for(int i = 0; i < colors.length; ++i)
+        {
+            orders[i].execute(this, colors[i]);
+        }
+    }
+
+    /**
+     * Gets details necessary to rotate a cube.
+     *
+     * @param   side    The side to rotate.
+     *
+     * @return          Array of {@link DirectionOrder}s.
+     */
+    private DirectionOrder[] getRotateOrders(Side side)
+    {
+        // Can be simplified into map.
+
+        switch(side)
+        {
+        default:
+        case Front:
+            return new DirectionOrder[] {
+                    new DirectionOrder(Side.Left, Side.Right, Side.Up, Side.Down, true),        // Left
+                    new DirectionOrder(Side.Up, Side.Down, Side.Right, Side.Left, false),       // Up
+                    new DirectionOrder(Side.Right, Side.Left, Side.Down, Side.Up, true),        // Right
+                    new DirectionOrder(Side.Down, Side.Up, Side.Left, Side.Right, false),       // Down
+            };
+        case Back:
+            return new DirectionOrder[] {
+                    new DirectionOrder(Side.Right, Side.Right, Side.Up, Side.Up, false),        // Left
+                    new DirectionOrder(Side.Up, Side.Up, Side.Left, Side.Left, true),           // Up
+                    new DirectionOrder(Side.Left, Side.Left, Side.Down, Side.Down, false),      // Right
+                    new DirectionOrder(Side.Down, Side.Down, Side.Right, Side.Right, true),     // Down
+            };
+        case Up:
+            return new DirectionOrder[] {
+                    new DirectionOrder(Side.Left, Side.Up, Side.Back, Side.Up, false),          // Left
+                    new DirectionOrder(Side.Back, Side.Up, Side.Right, Side.Up, false),         // Up
+                    new DirectionOrder(Side.Right, Side.Up, Side.Front, Side.Up, false),         // Right
+                    new DirectionOrder(Side.Front, Side.Up, Side.Left, Side.Up, false),         // Down
+            };
+        case Down:
+            return new DirectionOrder[] {
+                    new DirectionOrder(Side.Left, Side.Down, Side.Front, Side.Down, false),     // Left
+                    new DirectionOrder(Side.Front, Side.Down, Side.Right, Side.Down, false),    // Up
+                    new DirectionOrder(Side.Right, Side.Down, Side.Back, Side.Down, false),     // Right
+                    new DirectionOrder(Side.Back, Side.Down, Side.Left, Side.Down, false),      // Down
+            };
+        case Left:
+            return new DirectionOrder[] {
+                    new DirectionOrder(Side.Back, Side.Right, Side.Up, Side.Left, true),        // Left
+                    new DirectionOrder(Side.Up, Side.Left, Side.Front, Side.Left, false),       // Up
+                    new DirectionOrder(Side.Front, Side.Left, Side.Down, Side.Left, false),     // Right
+                    new DirectionOrder(Side.Down, Side.Left, Side.Back, Side.Right, true),      // Down
+            };
+        case Right:
+            return new DirectionOrder[] {
+                    new DirectionOrder(Side.Front, Side.Right, Side.Up, Side.Right, false),     // Left
+                    new DirectionOrder(Side.Up, Side.Right, Side.Back, Side.Left, true),        // Up
+                    new DirectionOrder(Side.Back, Side.Left, Side.Down, Side.Right, true),      // Right
+                    new DirectionOrder(Side.Down, Side.Right, Side.Front, Side.Right, false)    // Down
+            };
+        }
     }
 
     public int getDimensions() { return dimensions_; }

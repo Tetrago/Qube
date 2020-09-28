@@ -4,13 +4,18 @@ import processing.core.PApplet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class Face
 {
+    public static final int TARGET_SIDE_SIZE = 300;
+
     private int dimensions_;
     private Color[] colors_;
     private final int[] borderSeq_;
+    private final int tileSize_;
 
     /**
      * Constructs face.
@@ -24,19 +29,13 @@ public class Face
         colors_ = new Color[dimensions * dimensions];
         Arrays.fill(colors_, color);
 
-        borderSeq_ = new int[dimensions * 2 + (dimensions - 2) * 2]; // Adds the lengths of two horizontal and two vertical sides.
-        int i = 0;
+        IntStream top = IntStream.range(0, dimensions - 1);
+        IntStream right = IntStream.iterate(dimensions - 1, n -> n + dimensions).limit(dimensions - 1);
+        IntStream down = IntStream.iterate(dimensions * dimensions - 1, n -> n - 1).limit(dimensions - 1);
+        IntStream left = IntStream.iterate(dimensions * (dimensions - 1), n -> n - dimensions).limit(dimensions - 1);
 
-        for(int y = 0; y < dimensions_; ++y)
-        {
-            for(int x = 0; x < dimensions_; ++x)
-            {
-                if(x == 0 || x == dimensions_ - 1 || y == 0 || y == dimensions_ - 1)
-                {
-                    borderSeq_[i++] =  y * dimensions_ + x;
-                }
-            }
-        }
+        borderSeq_ = IntStream.concat(IntStream.concat(top, right), IntStream.concat(down, left)).toArray();
+        tileSize_ = TARGET_SIDE_SIZE / dimensions;
     }
 
     /**
@@ -55,13 +54,11 @@ public class Face
 
         if(!ccw)    // Clockwise
         {
-            cache.add(0, cache.get(cache.size() - 1));
-            cache.remove(cache.size() - 1);
+            Collections.rotate(cache, dimensions_ - 1);
         }
         else        // Counterclockwise
         {
-            cache.add(cache.get(0));
-            cache.remove(0);
+            Collections.rotate(cache, -(dimensions_ - 1));
         }
 
         int index = 0;
@@ -72,66 +69,100 @@ public class Face
     }
 
     /**
-     * Retrieves a set of colors based on a pattern.
+     * Gets indices of side.
      *
-     * <p>For example, "1XX2XX3XX" would get the left side of this face, if it has the dimension of three.</p>
+     * @param   side    Side to generate array for.
+     * @param   reverse Whether to reverse the indices.
      *
-     * @param   pattern Pattern string.
+     * @return          Array of indices.
+     */
+    private int[] retrieveIndices(Side side, boolean reverse)
+    {
+        IntStream stream;
+
+        switch(side)
+        {
+        default:
+        case Up:
+            stream = IntStream.range(0, dimensions_);
+            break;
+        case Down:
+            int offset = dimensions_ * (dimensions_ - 1);
+            stream = IntStream.range(offset, offset + dimensions_);
+            break;
+        case Right:
+            stream = IntStream.iterate(dimensions_ - 1, n -> n + dimensions_).limit(dimensions_);
+            break;
+        case Left:
+            stream = IntStream.iterate(0, n -> n + dimensions_).limit(dimensions_);
+            break;
+        }
+
+        if(reverse)
+        {
+            return stream.boxed().sorted(Collections.reverseOrder()).mapToInt(i -> i).toArray();
+        }
+
+        return stream.toArray();
+    }
+
+    /**
+     * Gets colors on edge.
+     *
+     * @param   side    Side to get colors from.
+     *
+     * @return          Array of colors on {@code side}.
+     */
+    public Color[] get(Side side)
+    {
+        return parseIndices(retrieveIndices(side, false));
+    }
+
+    /**
+     * Sets colors on edge.
+     *
+     * @param   side    Side to get colors from.
+     * @param   colors  Array of colors on {@code side}.
+     * @param   reverse Whether to reverse the array.
+     */
+    public void set(Side side, Color[] colors, boolean reverse)
+    {
+        parseIndices(retrieveIndices(side, reverse), colors);
+    }
+
+    /**
+     * Gets colors using indices.
+     *
+     * @param   indices Array of indices of colors to return.
      *
      * @return          Array of colors.
      */
-    public Color[] retrieve(String pattern)
+    private Color[] parseIndices(int[] indices)
     {
-        int[] indices = parsePatternIndices(pattern);
         Color[] colors = new Color[indices.length];
 
-        for(int i = 0; i < indices.length; ++i)
+        int index = 0;
+        for(int i : indices)
         {
-            colors[i] = colors_[indices[i]];
+            colors[index++] = colors_[i];
         }
 
         return colors;
     }
 
     /**
-     * Modifies a set of colors based on a pattern.
+     * Sets colors using indices.
      *
-     * <p>For example, "1XX2XX3XX" would set the left side of this face, if it has the dimension of three.</p>
-     *
-     * @param   pattern Pattern string.
-     * @param   colors  Colors to replace with.
+     * @param   indices Array of indices to set.
+     * @param   colors  Array of colors to set.
      */
-    public void modify(String pattern, Color[] colors)
+    private void parseIndices(int[] indices, Color[] colors)
     {
-        int[] indices = parsePatternIndices(pattern);
-
-        for(int i = 0; i < indices.length; ++i)
+        int index = 0;
+        for(int i : indices)
         {
-            colors_[indices[i]] = colors[i];
+            colors_[i] = colors[index++];
         }
-    }
-
-    /**
-     * Parses color pattern into array indexes.
-     *
-     * @param   pattern Pattern to parse.
-     *
-     * @return          Array of corresponding indexes.
-     */
-    private int[] parsePatternIndices(String pattern)
-    {
-          int count = pattern.replaceAll("\\D", "").length();
-          int[] indices = new int[count];
-
-          int index = 0;
-
-          for(int i = 0; i < pattern.length(); ++i)
-          {
-              if(pattern.charAt(i) == 'X') continue;
-              indices[Integer.parseInt(pattern.substring(i, i + 1))] = i;
-          }
-
-          return indices;
     }
 
     /**
@@ -149,7 +180,7 @@ public class Face
             for(int x = 0; x < dimensions_; ++x)
             {
                 colors_[y * dimensions_ + x].fill(canvas);
-                canvas.rect((x - dimensions_ * 0.5f) * Cube.TILE_SIZE, (y - dimensions_ * 0.5f) * Cube.TILE_SIZE, Cube.TILE_SIZE, Cube.TILE_SIZE);
+                canvas.rect((x - dimensions_ * 0.5f) * tileSize_, (y - dimensions_ * 0.5f) * tileSize_, tileSize_, tileSize_);
             }
         }
 

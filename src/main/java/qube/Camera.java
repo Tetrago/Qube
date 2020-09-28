@@ -9,8 +9,8 @@ public class Camera
     public static final float DRAG_SENSITIVITY = 0.8f;
     public static final float SCROLL_SENSITIVITY = 15.0f;
 
-    private int distanceFromCenter_ = 250;
-    private int mdx_, mdy_;
+    private int distanceFromCenter_ = 350;
+    private int mdx_ = -45, mdy_ = -45;
 
     /**
      * Notifies the camera about mouse dragging.
