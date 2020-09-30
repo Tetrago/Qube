@@ -23,7 +23,6 @@ public class Camera
         mdx_ -= (canvas.mouseX - canvas.pmouseX) * DRAG_SENSITIVITY;
         mdy_ -= (canvas.mouseY - canvas.pmouseY) * DRAG_SENSITIVITY;
 
-        mdx_ = Math.min(DEGREE_LIMIT, Math.max(-DEGREE_LIMIT, mdx_));
         mdy_ = Math.min(DEGREE_LIMIT, Math.max(-DEGREE_LIMIT, mdy_));
     }
 

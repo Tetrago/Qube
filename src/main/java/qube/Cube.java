@@ -60,8 +60,10 @@ public class Cube
             PVector pos = side.getPosition();
             PVector rot = side.getRotation();
 
+            float unit = tileSize_ * dimensions_ * 0.5f;
+
             canvas.pushMatrix();
-            canvas.translate(pos.x * tileSize_ * dimensions_ * 0.5f, pos.y * tileSize_ * dimensions_ * -0.5f, pos.z * tileSize_ * dimensions_ * 0.5f);
+            canvas.translate(pos.x * unit, pos.y * unit, pos.z * unit);
             canvas.rotate(side.getAngle(), rot.x, rot.y, rot.z);
 
             faces_[side.ordinal()].draw(canvas);
