@@ -28,22 +28,22 @@ public class User
         switch(Character.toLowerCase(key))
         {
         case 'f':
-            cube_.rotate(Side.Front, ccw_);
+            cube_.rotate(Side.Front, 0, ccw_);
             break;
         case 'b':
-            cube_.rotate(Side.Back, ccw_);
+            cube_.rotate(Side.Back, 0, ccw_);
             break;
         case 'u':
-            cube_.rotate(Side.Up, ccw_);
+            cube_.rotate(Side.Up, 0, ccw_);
             break;
         case 'd':
-            cube_.rotate(Side.Down, ccw_);
+            cube_.rotate(Side.Down, 0, ccw_);
             break;
         case 'r':
-            cube_.rotate(Side.Right, ccw_);
+            cube_.rotate(Side.Right, 0, ccw_);
             break;
         case 'l':
-            cube_.rotate(Side.Left, ccw_);
+            cube_.rotate(Side.Left, 0, ccw_);
             break;
         case 's':
             cube_.scramble(100, 200);

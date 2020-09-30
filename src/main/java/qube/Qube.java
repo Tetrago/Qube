@@ -14,9 +14,9 @@ public class Qube extends PApplet
         PApplet.main(Qube.class.getName());
     }
 
-    private Camera camera_ = new Camera();
-    private Cube cube_ = new Cube(10);
-    private User user_;
+    private final Camera camera_ = new Camera();
+    private final Cube cube_ = new Cube(3);
+    private final User user_;
 
     public Qube()
     {

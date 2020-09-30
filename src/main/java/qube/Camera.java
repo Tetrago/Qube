@@ -8,9 +8,10 @@ public class Camera
 {
     public static final float DRAG_SENSITIVITY = 0.8f;
     public static final float SCROLL_SENSITIVITY = 15.0f;
+    public static final float DEGREE_LIMIT = 90;
 
     private int distanceFromCenter_ = 350;
-    private int mdx_ = -45, mdy_ = -45;
+    private float mdx_ = -45, mdy_ = -45;
 
     /**
      * Notifies the camera about mouse dragging.
@@ -21,6 +22,9 @@ public class Camera
     {
         mdx_ -= (canvas.mouseX - canvas.pmouseX) * DRAG_SENSITIVITY;
         mdy_ -= (canvas.mouseY - canvas.pmouseY) * DRAG_SENSITIVITY;
+
+        mdx_ = Math.min(DEGREE_LIMIT, Math.max(-DEGREE_LIMIT, mdx_));
+        mdy_ = Math.min(DEGREE_LIMIT, Math.max(-DEGREE_LIMIT, mdy_));
     }
 
     /**

@@ -12,8 +12,8 @@ public class Face
 {
     public static final int TARGET_SIDE_SIZE = 300;
 
-    private int dimensions_;
-    private Color[] colors_;
+    private final int dimensions_;
+    private final Color[] colors_;
     private final int[] borderSeq_;
     private final int tileSize_;
 
@@ -69,65 +69,89 @@ public class Face
     }
 
     /**
-     * Gets indices of side.
+     * Retrieves the indices of a row.
      *
-     * @param   side    Side to generate array for.
+     * @param   row     Row index from the left.
      * @param   reverse Whether to reverse the indices.
      *
-     * @return          Array of indices.
+     * @return          Indices of the colors in that row.
      */
-    private int[] retrieveIndices(Side side, boolean reverse)
+    private int[] retrieveRowIndices(int row, boolean reverse)
     {
-        IntStream stream;
-
-        switch(side)
-        {
-        default:
-        case Up:
-            stream = IntStream.range(0, dimensions_);
-            break;
-        case Down:
-            int offset = dimensions_ * (dimensions_ - 1);
-            stream = IntStream.range(offset, offset + dimensions_);
-            break;
-        case Right:
-            stream = IntStream.iterate(dimensions_ - 1, n -> n + dimensions_).limit(dimensions_);
-            break;
-        case Left:
-            stream = IntStream.iterate(0, n -> n + dimensions_).limit(dimensions_);
-            break;
-        }
+        IntStream stream = IntStream.range(0, dimensions_).map(n -> n + row * dimensions_);
 
         if(reverse)
         {
-            return stream.boxed().sorted(Collections.reverseOrder()).mapToInt(i -> i).toArray();
+            return stream.boxed().sorted(Collections.reverseOrder()).mapToInt(n -> n).toArray();
         }
 
         return stream.toArray();
     }
 
     /**
-     * Gets colors on edge.
+     * Retrieves the indices of a column.
      *
-     * @param   side    Side to get colors from.
+     * @param   col     Column index from the left.
+     * @param   reverse Whether to reverse the indices.
      *
-     * @return          Array of colors on {@code side}.
+     * @return          Indices of the colors in that column.
      */
-    public Color[] get(Side side)
+    private int[] retrieveColumnIndices(int col, boolean reverse)
     {
-        return parseIndices(retrieveIndices(side, false));
+        IntStream stream = IntStream.iterate(col, n -> n + dimensions_).limit(dimensions_);
+
+        if(reverse)
+        {
+            return stream.boxed().sorted(Collections.reverseOrder()).mapToInt(n -> n).toArray();
+        }
+
+        return stream.toArray();
     }
 
     /**
-     * Sets colors on edge.
+     * Retrieves indices from a side.
      *
-     * @param   side    Side to get colors from.
-     * @param   colors  Array of colors on {@code side}.
-     * @param   reverse Whether to reverse the array.
+     * @param side      Side to start from.
+     * @param offset    Offset from side.
+     * @param reverse   Whether to reverse the indices.
+     *
+     * @return          Array of indices.
      */
-    public void set(Side side, Color[] colors, boolean reverse)
+    public int[] retrieveIndices(Side side, int offset, boolean reverse)
     {
-        parseIndices(retrieveIndices(side, reverse), colors);
+        if(side == Side.Left || side == Side.Right)
+        {
+            int col = side == Side.Left ? offset : dimensions_ - offset - 1;    // Reverses column based on direction.
+            return retrieveColumnIndices(col, reverse);
+        }
+        else
+        {
+            int row = side == Side.Up ? offset : dimensions_ - offset - 1;      // Reverses row based on direction.
+            return  retrieveRowIndices(row, reverse);
+        }
+    }
+
+    /**
+     * Sets colors.
+     *
+     * @param   indices Indices to replace.
+     * @param   colors  Array of colors on {@code side}.
+     */
+    public void set(int[] indices, Color[] colors)
+    {
+        parseIndices(indices, colors);
+    }
+
+    /**
+     * Gets colors.
+     *
+     * @param   indices Indices to get.
+     *
+     * @return          Array of colors.
+     */
+    public Color[] get(int[] indices)
+    {
+        return parseIndices(indices);
     }
 
     /**

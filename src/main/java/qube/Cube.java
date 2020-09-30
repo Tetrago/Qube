@@ -5,8 +5,8 @@ import processing.core.PVector;
 
 public class Cube
 {
-    private int dimensions_;
-    private Face[] faces_;
+    private final int dimensions_;
+    private final Face[] faces_;
     private final int tileSize_;
 
     /**
@@ -41,9 +41,10 @@ public class Cube
         for(int i = 0; i < num; ++i)
         {
             Side side = Side.values()[(int)(Math.random() * 6)];
+            int offset = (int)(Math.random() * dimensions_);
             boolean ccw = (int)(Math.random() * 2) == 1;
 
-            rotate(side, ccw);
+            rotate(side, offset, ccw);
         }
     }
 
@@ -71,9 +72,9 @@ public class Cube
 
     private static class DirectionOrder
     {
-        private Side from_, to_;
-        private Side fromSide_, toSide_;
-        private boolean reverse_;
+        private final Side from_, to_;
+        private final Side fromSide_, toSide_;
+        private final boolean reverse_;
 
         public DirectionOrder(Side from, Side fromSide, Side to, Side toSide, boolean reverse)
         {
@@ -88,12 +89,14 @@ public class Cube
          * Caches the colors to set.
          *
          * @param   cube    Cube to get from.
+         * @param   offset  Offset of side.
          *
          * @return          Returns colors of from {@link Side}.
          */
-        public Color[] cache(Cube cube)
+        public Color[] cache(Cube cube, int offset)
         {
-            return cube.faces_[from_.ordinal()].get(fromSide_);
+            Face face = cube.faces_[from_.ordinal()];
+            return face.get(face.retrieveIndices(fromSide_, offset, false));
         }
 
         /**
@@ -101,10 +104,12 @@ public class Cube
          *
          * @param   cube    Cube to set to.
          * @param   colors  {@link Color} array to use.
+         * @param   offset  Offset of side.
          */
-        public void execute(Cube cube, Color[] colors)
+        public void execute(Cube cube, Color[] colors, int offset)
         {
-            cube.faces_[to_.ordinal()].set(toSide_, colors, reverse_);
+            Face face = cube.faces_[to_.ordinal()];
+            face.set(face.retrieveIndices(toSide_, offset, reverse_), colors);
         }
 
         public Side getFrom() { return from_; }
@@ -118,19 +123,23 @@ public class Cube
      * Rotates a face.
      *
      * @param   side    The side to rotate.
+     * @param   offset  Offset from side.
      * @param   ccw     Whether to rotate counterclockwise.
      */
-    public void rotate(Side side, boolean ccw)
+    public void rotate(Side side, int offset, boolean ccw)
     {
-        faces_[side.ordinal()].rotate(ccw);
+        if(offset == 0 || offset == dimensions_ - 1)
+        {
+            faces_[side.ordinal()].rotate(ccw);
+        }
 
-        internalRotate(side);
+        internalRotate(side, offset);
 
         if(ccw)
         {
-            for(int i = 0; i < 2; ++i)
+            for(int i = 0; i < 2; ++i)  // Three clockwise rotations is equivalent to one counterclockwise rotation
             {
-                internalRotate(side);
+                internalRotate(side, offset);
             }
         }
     }
@@ -139,20 +148,21 @@ public class Cube
      * Rotates the edges of a side.
      *
      * @param   side    Side edges to rotate.
+     * @param   offset  Offset of rotation.
      */
-    private void internalRotate(Side side)
+    private void internalRotate(Side side, int offset)
     {
         DirectionOrder[] orders = getRotateOrders(side);
         Color[][] colors = new Color[4][];
 
         for(int i = 0; i < colors.length; ++i)
         {
-            colors[i] = orders[i].cache(this);
+            colors[i] = orders[i].cache(this, offset);
         }
 
         for(int i = 0; i < colors.length; ++i)
         {
-            orders[i].execute(this, colors[i]);
+            orders[i].execute(this, colors[i], offset);
         }
     }
 
