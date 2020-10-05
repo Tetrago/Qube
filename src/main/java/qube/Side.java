@@ -5,16 +5,16 @@ import processing.core.PVector;
 
 public enum Side
 {
-    Front(new PVector(0, 0, 1), new PVector(0, 0, 0), 0),
-    Back(new PVector(0, 0, -1), new PVector(0, 1, 0), 180),
-    Up(new PVector(0, 1, 0), new PVector(1, 0, 0), 90),
-    Down(new PVector(0, -1, 0), new PVector(-1, 0, 0), 90),
-    Right(new PVector(1, 0, 0), new PVector(0, 1, 0), 90),
-    Left(new PVector(-1, 0, 0), new PVector(0, -1, 0), 90);
+    FRONT(new PVector(0, 0, 1), new PVector(0, 0, 0), 0),
+    BACK(new PVector(0, 0, -1), new PVector(0, 1, 0), 180),
+    UP(new PVector(0, -1, 0), new PVector(1, 0, 0), 90),
+    DOWN(new PVector(0, 1, 0), new PVector(-1, 0, 0), 90),
+    RIGHT(new PVector(1, 0, 0), new PVector(0, 1, 0), 90),
+    LEFT(new PVector(-1, 0, 0), new PVector(0, -1, 0), 90);
 
-    private PVector position_;
-    private PVector rotation_;
-    private float angle_;
+    private final PVector position_;
+    private final PVector rotation_;
+    private final float angle_;
 
     /**
      * Constructs a side.

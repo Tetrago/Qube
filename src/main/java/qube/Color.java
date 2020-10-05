@@ -4,14 +4,15 @@ import processing.core.PApplet;
 
 public enum Color
 {
-    Blue(2, 0, 255),
-    Green(1, 255, 2),
-    White(255, 255, 255),
-    Yellow(255, 255, 1),
-    Orange(255, 140, 2),
-    Red(255, 0, 1);
+    BLUE(2, 0, 255),
+    GREEN(1, 255, 2),
+    WHITE(255, 255, 255),
+    YELLOW(255, 255, 1),
+    ORANGE(255, 140, 2),
+    RED(255, 0, 1),
+    PURPLE(255, 0, 255);
 
-    private int r_, g_, b_;
+    private final int r_, g_, b_;
 
     /**
      * Color values from 0-255.

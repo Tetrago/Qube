@@ -1,15 +1,17 @@
 package qube;
 
 import processing.core.PConstants;
+import qube.algorithm3x3.Algorithm3x3;
 
 public class User
 {
     private final Cube cube_;
     private boolean ccw_ = false;
+    private Algorithm3x3 algorithm_;
 
     public User(Cube cube)
     {
-        cube_ = cube;
+        algorithm_ = new Algorithm3x3(cube_ = cube);
     }
 
     /**
@@ -28,25 +30,28 @@ public class User
         switch(Character.toLowerCase(key))
         {
         case 'f':
-            cube_.rotate(Side.Front, 0, ccw_);
+            cube_.rotate(Side.FRONT, 0, ccw_);
             break;
         case 'b':
-            cube_.rotate(Side.Back, 0, ccw_);
+            cube_.rotate(Side.BACK, 0, ccw_);
             break;
         case 'u':
-            cube_.rotate(Side.Up, 0, ccw_);
+            cube_.rotate(Side.UP, 0, ccw_);
             break;
         case 'd':
-            cube_.rotate(Side.Down, 0, ccw_);
+            cube_.rotate(Side.DOWN, 0, ccw_);
             break;
         case 'r':
-            cube_.rotate(Side.Right, 0, ccw_);
+            cube_.rotate(Side.RIGHT, 0, ccw_);
             break;
         case 'l':
-            cube_.rotate(Side.Left, 0, ccw_);
+            cube_.rotate(Side.LEFT, 0, ccw_);
             break;
         case 's':
             cube_.scramble(100, 200);
+            break;
+        case ' ':
+            algorithm_.daisy();
             break;
         }
     }

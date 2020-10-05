@@ -2,8 +2,9 @@ package qube;
 
 import processing.core.PApplet;
 import processing.core.PVector;
+import qube.algorithm3x3.*;
 
-public class Cube
+public class Cube implements ICube
 {
     private final int dimensions_;
     private final Face[] faces_;
@@ -70,6 +71,42 @@ public class Cube
 
             canvas.popMatrix();
         }
+    }
+
+    @Override
+    public void rotate(Side side, boolean ccw, int count)
+    {
+        for(int i = 0; i < count; ++i)
+        {
+            rotate(side, 0, ccw);
+        }
+    }
+
+    @Override
+    public boolean find(Search search)
+    {
+        for(Side side : Side.values())
+        {
+            Face face = faces_[side.ordinal()];
+
+            for(Location location : Location.values())
+            {
+                search.fill(side, location);
+
+                if(search.valid())
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public IFace getFace(Side side)
+    {
+        return faces_[side.ordinal()];
     }
 
     private static class DirectionOrder
@@ -182,47 +219,47 @@ public class Cube
         switch(side)
         {
         default:
-        case Front:
+        case FRONT:
             return new DirectionOrder[] {
-                    new DirectionOrder(Side.Left, Side.Right, Side.Up, Side.Down, true),        // Left
-                    new DirectionOrder(Side.Up, Side.Down, Side.Right, Side.Left, false),       // Up
-                    new DirectionOrder(Side.Right, Side.Left, Side.Down, Side.Up, true),        // Right
-                    new DirectionOrder(Side.Down, Side.Up, Side.Left, Side.Right, false),       // Down
+                    new DirectionOrder(Side.LEFT, Side.RIGHT, Side.UP, Side.DOWN, true),        // Left
+                    new DirectionOrder(Side.UP, Side.DOWN, Side.RIGHT, Side.LEFT, false),       // Up
+                    new DirectionOrder(Side.RIGHT, Side.LEFT, Side.DOWN, Side.UP, true),        // Right
+                    new DirectionOrder(Side.DOWN, Side.UP, Side.LEFT, Side.RIGHT, false),       // Down
             };
-        case Back:
+        case BACK:
             return new DirectionOrder[] {
-                    new DirectionOrder(Side.Right, Side.Right, Side.Up, Side.Up, false),        // Left
-                    new DirectionOrder(Side.Up, Side.Up, Side.Left, Side.Left, true),           // Up
-                    new DirectionOrder(Side.Left, Side.Left, Side.Down, Side.Down, false),      // Right
-                    new DirectionOrder(Side.Down, Side.Down, Side.Right, Side.Right, true),     // Down
+                    new DirectionOrder(Side.RIGHT, Side.RIGHT, Side.UP, Side.UP, false),        // Left
+                    new DirectionOrder(Side.UP, Side.UP, Side.LEFT, Side.LEFT, true),           // Up
+                    new DirectionOrder(Side.LEFT, Side.LEFT, Side.DOWN, Side.DOWN, false),      // Right
+                    new DirectionOrder(Side.DOWN, Side.DOWN, Side.RIGHT, Side.RIGHT, true),     // Down
             };
-        case Up:
+        case UP:
             return new DirectionOrder[] {
-                    new DirectionOrder(Side.Left, Side.Up, Side.Back, Side.Up, false),          // Left
-                    new DirectionOrder(Side.Back, Side.Up, Side.Right, Side.Up, false),         // Up
-                    new DirectionOrder(Side.Right, Side.Up, Side.Front, Side.Up, false),         // Right
-                    new DirectionOrder(Side.Front, Side.Up, Side.Left, Side.Up, false),         // Down
+                    new DirectionOrder(Side.LEFT, Side.UP, Side.BACK, Side.UP, false),          // Left
+                    new DirectionOrder(Side.BACK, Side.UP, Side.RIGHT, Side.UP, false),         // Up
+                    new DirectionOrder(Side.RIGHT, Side.UP, Side.FRONT, Side.UP, false),         // Right
+                    new DirectionOrder(Side.FRONT, Side.UP, Side.LEFT, Side.UP, false),         // Down
             };
-        case Down:
+        case DOWN:
             return new DirectionOrder[] {
-                    new DirectionOrder(Side.Left, Side.Down, Side.Front, Side.Down, false),     // Left
-                    new DirectionOrder(Side.Front, Side.Down, Side.Right, Side.Down, false),    // Up
-                    new DirectionOrder(Side.Right, Side.Down, Side.Back, Side.Down, false),     // Right
-                    new DirectionOrder(Side.Back, Side.Down, Side.Left, Side.Down, false),      // Down
+                    new DirectionOrder(Side.LEFT, Side.DOWN, Side.FRONT, Side.DOWN, false),     // Left
+                    new DirectionOrder(Side.FRONT, Side.DOWN, Side.RIGHT, Side.DOWN, false),    // Up
+                    new DirectionOrder(Side.RIGHT, Side.DOWN, Side.BACK, Side.DOWN, false),     // Right
+                    new DirectionOrder(Side.BACK, Side.DOWN, Side.LEFT, Side.DOWN, false),      // Down
             };
-        case Left:
+        case LEFT:
             return new DirectionOrder[] {
-                    new DirectionOrder(Side.Back, Side.Right, Side.Up, Side.Left, true),        // Left
-                    new DirectionOrder(Side.Up, Side.Left, Side.Front, Side.Left, false),       // Up
-                    new DirectionOrder(Side.Front, Side.Left, Side.Down, Side.Left, false),     // Right
-                    new DirectionOrder(Side.Down, Side.Left, Side.Back, Side.Right, true),      // Down
+                    new DirectionOrder(Side.BACK, Side.RIGHT, Side.UP, Side.LEFT, true),        // Left
+                    new DirectionOrder(Side.UP, Side.LEFT, Side.FRONT, Side.LEFT, false),       // Up
+                    new DirectionOrder(Side.FRONT, Side.LEFT, Side.DOWN, Side.LEFT, false),     // Right
+                    new DirectionOrder(Side.DOWN, Side.LEFT, Side.BACK, Side.RIGHT, true),      // Down
             };
-        case Right:
+        case RIGHT:
             return new DirectionOrder[] {
-                    new DirectionOrder(Side.Front, Side.Right, Side.Up, Side.Right, false),     // Left
-                    new DirectionOrder(Side.Up, Side.Right, Side.Back, Side.Left, true),        // Up
-                    new DirectionOrder(Side.Back, Side.Left, Side.Down, Side.Right, true),      // Right
-                    new DirectionOrder(Side.Down, Side.Right, Side.Front, Side.Right, false)    // Down
+                    new DirectionOrder(Side.FRONT, Side.RIGHT, Side.UP, Side.RIGHT, false),     // Left
+                    new DirectionOrder(Side.UP, Side.RIGHT, Side.BACK, Side.LEFT, true),        // Up
+                    new DirectionOrder(Side.BACK, Side.LEFT, Side.DOWN, Side.RIGHT, true),      // Right
+                    new DirectionOrder(Side.DOWN, Side.RIGHT, Side.FRONT, Side.RIGHT, false)    // Down
             };
         }
     }

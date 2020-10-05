@@ -1,6 +1,8 @@
 package qube;
 
 import processing.core.PApplet;
+import qube.algorithm3x3.IFace;
+import qube.algorithm3x3.Location;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,7 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public class Face
+public class Face implements IFace
 {
     public static final int TARGET_SIDE_SIZE = 300;
 
@@ -119,14 +121,14 @@ public class Face
      */
     public int[] retrieveIndices(Side side, int offset, boolean reverse)
     {
-        if(side == Side.Left || side == Side.Right)
+        if(side == Side.LEFT || side == Side.RIGHT)
         {
-            int col = side == Side.Left ? offset : dimensions_ - offset - 1;    // Reverses column based on direction.
+            int col = side == Side.LEFT ? offset : dimensions_ - offset - 1;    // Reverses column based on direction.
             return retrieveColumnIndices(col, reverse);
         }
         else
         {
-            int row = side == Side.Up ? offset : dimensions_ - offset - 1;      // Reverses row based on direction.
+            int row = side == Side.UP ? offset : dimensions_ - offset - 1;      // Reverses row based on direction.
             return  retrieveRowIndices(row, reverse);
         }
     }
@@ -204,10 +206,34 @@ public class Face
             for(int x = 0; x < dimensions_; ++x)
             {
                 colors_[y * dimensions_ + x].fill(canvas);
+
+                if(x == (int)(dimensions_ * 0.5f) && y == 0 && Qube.isDebug())
+                {
+                    Color.PURPLE.fill(canvas);
+                }
+
                 canvas.rect((x - dimensions_ * 0.5f) * tileSize_, (y - dimensions_ * 0.5f) * tileSize_, tileSize_, tileSize_);
             }
         }
 
         canvas.popMatrix();
+    }
+
+    @Override
+    public Color getColor(Location location)
+    {
+        switch(location)
+        {
+        default:
+        case CENTER: return colors_[(int)(dimensions_ * dimensions_ * 0.5f)];
+        case TOP: return colors_[(int)(dimensions_ * 0.5f)];
+        case RIGHT: return colors_[(int)(dimensions_ * dimensions_ * 0.5f) + (int)(dimensions_ * 0.5f)];
+        case BOTTOM: return colors_[(int)(dimensions_ * dimensions_ - dimensions_ * 0.5f - 1)];
+        case LEFT: return colors_[(int)(dimensions_ * dimensions_ * 0.5f) - (int)(dimensions_ * 0.5f)];
+        case TOP_LEFT: return colors_[0];
+        case TOP_RIGHT: return colors_[dimensions_ - 1];
+        case BOTTOM_RIGHT: return colors_[dimensions_ * dimensions_ - 1];
+        case BOTTOM_LEFT: return colors_[dimensions_ * dimensions_ - dimensions_];
+        }
     }
 }

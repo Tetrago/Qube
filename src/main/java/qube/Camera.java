@@ -1,6 +1,7 @@
 package qube;
 
 import processing.core.PApplet;
+import processing.core.PVector;
 
 import static processing.core.PApplet.*;
 
@@ -10,8 +11,14 @@ public class Camera
     public static final float SCROLL_SENSITIVITY = 15.0f;
     public static final float DEGREE_LIMIT = 90;
 
-    private int distanceFromCenter_ = 350;
+    private final float minDistanceFromCenter_;
+    private float distanceFromCenter_ = 350;
     private float mdx_ = -45, mdy_ = -45;
+
+    public Camera()
+    {
+        minDistanceFromCenter_ = PVector.dist(new PVector(0, 0, 0), new PVector(Face.TARGET_SIDE_SIZE, Face.TARGET_SIDE_SIZE, Face.TARGET_SIDE_SIZE).mult(0.5f)) + 10;
+    }
 
     /**
      * Notifies the camera about mouse dragging.
@@ -43,6 +50,11 @@ public class Camera
      */
     public void draw(PApplet canvas)
     {
+        if(distanceFromCenter_ < minDistanceFromCenter_)
+        {
+            distanceFromCenter_ = minDistanceFromCenter_;
+        }
+
         float rx = radians(mdx_);
         float ry = radians(mdy_);
 
