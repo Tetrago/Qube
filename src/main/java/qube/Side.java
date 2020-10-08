@@ -30,6 +30,25 @@ public enum Side
         angle_ = PApplet.radians(angle);
     }
 
+    /**
+     * Finds the opposite side.
+     *
+     * @return  Opposite side.
+     */
+    public Side opposite()
+    {
+        switch(this)
+        {
+        default:
+        case FRONT: return BACK;
+        case BACK:  return FRONT;
+        case UP:    return DOWN;
+        case DOWN:  return UP;
+        case RIGHT: return LEFT;
+        case LEFT:  return RIGHT;
+        }
+    }
+
     public PVector getPosition() { return position_; }
     public PVector getRotation() { return rotation_; }
 

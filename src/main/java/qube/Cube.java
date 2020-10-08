@@ -4,11 +4,15 @@ import processing.core.PApplet;
 import processing.core.PVector;
 import qube.algorithm3x3.*;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+
 public class Cube implements ICube
 {
     private final int dimensions_;
     private final Face[] faces_;
     private final int tileSize_;
+    private final Object mutex = new Object();
 
     /**
      * Constructs a cube with faces.
@@ -32,17 +36,18 @@ public class Cube implements ICube
     /**
      * Scrambles a cube.
      *
-     * @param   min Minimum turns.
-     * @param   max Maximum turns.
+     * @param   min         Minimum turns.
+     * @param   max         Maximum turns.
+     * @param   maxOffset   Maximum distance from face to rotate.
      */
-    public void scramble(int min, int max)
+    public void scramble(int min, int max, int maxOffset)
     {
         int num = (int)(Math.random() * max - min);
 
         for(int i = 0; i < num; ++i)
         {
             Side side = Side.values()[(int)(Math.random() * 6)];
-            int offset = (int)(Math.random() * dimensions_);
+            int offset = (int)(Math.random() * Math.min(maxOffset, dimensions_));
             boolean ccw = (int)(Math.random() * 2) == 1;
 
             rotate(side, offset, ccw);
@@ -74,33 +79,117 @@ public class Cube implements ICube
     }
 
     @Override
-    public void rotate(Side side, boolean ccw, int count)
+    public Future<Void> rotate(Side side, boolean ccw, int count, int offset)
     {
-        for(int i = 0; i < count; ++i)
+        return CompletableFuture.runAsync(() ->
         {
-            rotate(side, 0, ccw);
-        }
+            synchronized(mutex)
+            {
+                for(int i = 0; i < count; ++i)
+                {
+                    rotate(side, offset, ccw);
+                }
+            }
+        });
     }
 
     @Override
-    public boolean find(Search search)
+    public Future<LocationSpace> find(ISearch search)
     {
-        for(Side side : Side.values())
+        return CompletableFuture.supplyAsync(() ->
         {
-            Face face = faces_[side.ordinal()];
-
-            for(Location location : Location.values())
+            synchronized(mutex)
             {
-                search.fill(side, location);
-
-                if(search.valid())
+                for(Side side : Side.values())
                 {
-                    return true;
+                    Face face = faces_[side.ordinal()];
+
+                    for(Location location : Location.values())
+                    {
+                        Color color = face.getColor(location);
+                        if(search.test(side, location, color))
+                        {
+                            return new LocationSpace(side, location, color);
+                        }
+                    }
                 }
+
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Gets colors from indices automatically.
+     *
+     * @param   face    Face to get from.
+     * @param   edge    Edge of indices.
+     * @param   reverse Whether to reverse the indices.
+     *
+     * @return          Colors on edge.
+     */
+    private Color[] getAutoIndices(Side face, Side edge, boolean reverse)
+    {
+        Face f = faces_[face.ordinal()];
+        return f.getColors(f.retrieveIndices(edge, 0, reverse));
+    }
+
+    @Override
+    public Color[] getEdgeStrip(Side side, Side edge)
+    {
+        switch(side)
+        {
+        case FRONT:
+            switch(edge)
+            {
+            case UP: return getAutoIndices(Side.UP, Side.DOWN, false);
+            case RIGHT: return getAutoIndices(Side.RIGHT, Side.LEFT, false);
+            case DOWN: return getAutoIndices(Side.DOWN, Side.UP, false);
+            case LEFT: return getAutoIndices(Side.LEFT, Side.RIGHT, false);
+            }
+        case BACK:
+            switch(edge)
+            {
+            case UP: return getAutoIndices(Side.UP, Side.UP, true);
+            case RIGHT: return getAutoIndices(Side.LEFT, Side.LEFT, false);
+            case DOWN: return getAutoIndices(Side.DOWN, Side.DOWN, true);
+            case LEFT: return getAutoIndices(Side.RIGHT, Side.RIGHT, false);
+            }
+        case UP:
+            switch(edge)
+            {
+            case UP: return getAutoIndices(Side.BACK, Side.UP, true);
+            case RIGHT: return getAutoIndices(Side.RIGHT, Side.UP, true);
+            case DOWN: return getAutoIndices(Side.FRONT, Side.UP, false);
+            case LEFT: return getAutoIndices(Side.LEFT, Side.UP, false);
+            }
+        case DOWN:
+            switch(edge)
+            {
+            case UP: return getAutoIndices(Side.FRONT, Side.DOWN, false);
+            case RIGHT: return getAutoIndices(Side.RIGHT, Side.DOWN, false);
+            case DOWN: return getAutoIndices(Side.BACK, Side.DOWN, true);
+            case LEFT: return getAutoIndices(Side.LEFT, Side.DOWN, true);
+            }
+        case RIGHT:
+            switch(edge)
+            {
+            case UP: return getAutoIndices(Side.UP, Side.RIGHT, true);
+            case RIGHT: return getAutoIndices(Side.BACK, Side.LEFT, false);
+            case DOWN: return getAutoIndices(Side.DOWN, Side.RIGHT, true);
+            case LEFT: return getAutoIndices(Side.FRONT, Side.RIGHT, false);
+            }
+        case LEFT:
+            switch(edge)
+            {
+            case UP: return getAutoIndices(Side.UP, Side.LEFT, false);
+            case RIGHT: return getAutoIndices(Side.FRONT, Side.LEFT, false);
+            case DOWN: return getAutoIndices(Side.DOWN, Side.LEFT, true);
+            case LEFT: return getAutoIndices(Side.BACK, Side.RIGHT, false);
             }
         }
 
-        return false;
+        throw new IllegalStateException("Unknown error occurred");
     }
 
     @Override
@@ -135,7 +224,7 @@ public class Cube implements ICube
         public Color[] cache(Cube cube, int offset)
         {
             Face face = cube.faces_[from_.ordinal()];
-            return face.get(face.retrieveIndices(fromSide_, offset, false));
+            return face.getColors(face.retrieveIndices(fromSide_, offset, false));
         }
 
         /**
@@ -148,7 +237,7 @@ public class Cube implements ICube
         public void execute(Cube cube, Color[] colors, int offset)
         {
             Face face = cube.faces_[to_.ordinal()];
-            face.set(face.retrieveIndices(toSide_, offset, reverse_), colors);
+            face.setColors(face.retrieveIndices(toSide_, offset, reverse_), colors);
         }
 
         public Side getFrom() { return from_; }
@@ -165,7 +254,7 @@ public class Cube implements ICube
      * @param   offset  Offset from side.
      * @param   ccw     Whether to rotate counterclockwise.
      */
-    public void rotate(Side side, int offset, boolean ccw)
+    private void rotate(Side side, int offset, boolean ccw)
     {
         if(offset == 0 || offset == dimensions_ - 1)
         {
@@ -263,6 +352,4 @@ public class Cube implements ICube
             };
         }
     }
-
-    public int getDimensions() { return dimensions_; }
 }

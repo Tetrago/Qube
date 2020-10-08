@@ -18,6 +18,7 @@ public class Face implements IFace
     private final Color[] colors_;
     private final int[] borderSeq_;
     private final int tileSize_;
+    private final Object mutex = new Object();
 
     /**
      * Constructs face.
@@ -47,26 +48,29 @@ public class Face implements IFace
      */
     public void rotate(boolean ccw)
     {
-        List<Color> cache = new ArrayList<>(borderSeq_.length);
+        synchronized(mutex)
+        {
+            List<Color> cache = new ArrayList<>(borderSeq_.length);
 
-        for(int i : borderSeq_)
-        {
-            cache.add(colors_[i]);
-        }
+            for(int i : borderSeq_)
+            {
+                cache.add(colors_[i]);
+            }
 
-        if(!ccw)    // Clockwise
-        {
-            Collections.rotate(cache, dimensions_ - 1);
-        }
-        else        // Counterclockwise
-        {
-            Collections.rotate(cache, -(dimensions_ - 1));
-        }
+            if(!ccw)    // Clockwise
+            {
+                Collections.rotate(cache, dimensions_ - 1);
+            }
+            else        // Counterclockwise
+            {
+                Collections.rotate(cache, -(dimensions_ - 1));
+            }
 
-        int index = 0;
-        for(int i : borderSeq_)
-        {
-            colors_[i] = cache.get(index++);
+            int index = 0;
+            for(int i : borderSeq_)
+            {
+                colors_[i] = cache.get(index++);
+            }
         }
     }
 
@@ -139,9 +143,12 @@ public class Face implements IFace
      * @param   indices Indices to replace.
      * @param   colors  Array of colors on {@code side}.
      */
-    public void set(int[] indices, Color[] colors)
+    public void setColors(int[] indices, Color[] colors)
     {
-        parseIndices(indices, colors);
+        synchronized(mutex)
+        {
+            parseIndices(indices, colors);
+        }
     }
 
     /**
@@ -151,9 +158,12 @@ public class Face implements IFace
      *
      * @return          Array of colors.
      */
-    public Color[] get(int[] indices)
+    public Color[] getColors(int[] indices)
     {
-        return parseIndices(indices);
+        synchronized(mutex)
+        {
+            return parseIndices(indices);
+        }
     }
 
     /**
@@ -225,11 +235,11 @@ public class Face implements IFace
         switch(location)
         {
         default:
-        case CENTER: return colors_[(int)(dimensions_ * dimensions_ * 0.5f)];
-        case TOP: return colors_[(int)(dimensions_ * 0.5f)];
-        case RIGHT: return colors_[(int)(dimensions_ * dimensions_ * 0.5f) + (int)(dimensions_ * 0.5f)];
-        case BOTTOM: return colors_[(int)(dimensions_ * dimensions_ - dimensions_ * 0.5f - 1)];
-        case LEFT: return colors_[(int)(dimensions_ * dimensions_ * 0.5f) - (int)(dimensions_ * 0.5f)];
+        case CENTER: return colors_[dimensions_ * dimensions_ / 2];
+        case TOP: return colors_[dimensions_ / 2];
+        case RIGHT: return colors_[dimensions_ * dimensions_ / 2 + dimensions_ / 2];
+        case BOTTOM: return colors_[dimensions_ * dimensions_ - dimensions_ / 2 - 1];
+        case LEFT: return colors_[dimensions_ * dimensions_ / 2 - dimensions_ / 2];
         case TOP_LEFT: return colors_[0];
         case TOP_RIGHT: return colors_[dimensions_ - 1];
         case BOTTOM_RIGHT: return colors_[dimensions_ * dimensions_ - 1];

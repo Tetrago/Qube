@@ -30,28 +30,28 @@ public class User
         switch(Character.toLowerCase(key))
         {
         case 'f':
-            cube_.rotate(Side.FRONT, 0, ccw_);
+            cube_.rotate(Side.FRONT, ccw_, 1);
             break;
         case 'b':
-            cube_.rotate(Side.BACK, 0, ccw_);
+            cube_.rotate(Side.BACK, ccw_, 1);
             break;
         case 'u':
-            cube_.rotate(Side.UP, 0, ccw_);
+            cube_.rotate(Side.UP, ccw_, 1);
             break;
         case 'd':
-            cube_.rotate(Side.DOWN, 0, ccw_);
+            cube_.rotate(Side.DOWN, ccw_, 1);
             break;
         case 'r':
-            cube_.rotate(Side.RIGHT, 0, ccw_);
+            cube_.rotate(Side.RIGHT, ccw_, 1);
             break;
         case 'l':
-            cube_.rotate(Side.LEFT, 0, ccw_);
+            cube_.rotate(Side.LEFT, ccw_, 1);
             break;
         case 's':
-            cube_.scramble(100, 200);
+            cube_.scramble(100, 200, 0);
             break;
         case ' ':
-            algorithm_.daisy();
+            algorithm_.solve();
             break;
         }
     }
