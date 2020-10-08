@@ -89,10 +89,10 @@ public class Cube implements ICube
             {
                 for(int i = 0; i < count; ++i)
                 {
+                    animator_.rotate(side, ccw, offset);
+
                     synchronized(animator_)
                     {
-                        animator_.rotate(side, ccw, offset);
-
                         try
                         {
                             animator_.wait();
@@ -101,9 +101,9 @@ public class Cube implements ICube
                         {
                             e.printStackTrace();
                         }
-
-                        rotate(side, offset, ccw);
                     }
+
+                    rotate(side, offset, ccw);
                 }
             }
         });

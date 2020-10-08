@@ -162,11 +162,7 @@ public class Animator
             if(progress_ > 90)
             {
                 rotating_ = false;
-
-                for(int i = 0; i < 4; ++i)
-                {
-                    Arrays.fill(blacklist_[i], -1);
-                }
+                Arrays.stream(blacklist_).forEach(n -> Arrays.fill(n, -1));
 
                 synchronized(this)
                 {
