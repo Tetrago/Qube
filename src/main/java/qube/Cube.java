@@ -9,6 +9,7 @@ import java.util.concurrent.Future;
 
 public class Cube implements ICube
 {
+    private final Animator animator_ = new Animator(this, 5);
     private final int dimensions_;
     private final Face[] faces_;
     private final int tileSize_;
@@ -30,7 +31,7 @@ public class Cube implements ICube
             faces_[i] = new Face(dimensions, colors[i]);
         }
 
-        tileSize_ = Face.TARGET_SIDE_SIZE / dimensions;
+        tileSize_ = Face.TARGET_FACE_SIDE / dimensions;
     }
 
     /**
@@ -72,7 +73,8 @@ public class Cube implements ICube
             canvas.translate(pos.x * unit, pos.y * unit, pos.z * unit);
             canvas.rotate(side.getAngle(), rot.x, rot.y, rot.z);
 
-            faces_[side.ordinal()].draw(canvas);
+            animator_.apply(canvas, side);
+            faces_[side.ordinal()].draw(canvas, n -> !animator_.isBlacklisted(side, n));
 
             canvas.popMatrix();
         }
@@ -87,7 +89,21 @@ public class Cube implements ICube
             {
                 for(int i = 0; i < count; ++i)
                 {
-                    rotate(side, offset, ccw);
+                    synchronized(animator_)
+                    {
+                        animator_.rotate(side, ccw, offset);
+
+                        try
+                        {
+                            animator_.wait();
+                        }
+                        catch(InterruptedException e)
+                        {
+                            e.printStackTrace();
+                        }
+
+                        rotate(side, offset, ccw);
+                    }
                 }
             }
         });
@@ -198,7 +214,7 @@ public class Cube implements ICube
         return faces_[side.ordinal()];
     }
 
-    private static class DirectionOrder
+    public static class DirectionOrder
     {
         private final Side from_, to_;
         private final Side fromSide_, toSide_;
@@ -352,4 +368,6 @@ public class Cube implements ICube
             };
         }
     }
+
+    public int getDimensions() { return dimensions_; }
 }

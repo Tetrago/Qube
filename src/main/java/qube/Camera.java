@@ -17,7 +17,7 @@ public class Camera
 
     public Camera()
     {
-        minDistanceFromCenter_ = PVector.dist(new PVector(0, 0, 0), new PVector(Face.TARGET_SIDE_SIZE, Face.TARGET_SIDE_SIZE, Face.TARGET_SIDE_SIZE).mult(0.5f)) + 10;
+        minDistanceFromCenter_ = PVector.dist(new PVector(0, 0, 0), new PVector(Face.TARGET_FACE_SIDE, Face.TARGET_FACE_SIDE, Face.TARGET_FACE_SIDE).mult(0.5f)) + 10;
     }
 
     /**

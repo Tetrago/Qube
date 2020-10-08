@@ -8,8 +8,8 @@ public class Qube extends PApplet
 {
     private static boolean debug_;
 
-    public static final int WIDTH = 1024;
-    public static final int HEIGHT = 576;
+    public static final int WIDTH = 1280;
+    public static final int HEIGHT = 720;
 
     public static void main(String[] args)
     {
@@ -70,7 +70,7 @@ public class Qube extends PApplet
 
         if(debug_)
         {
-            final int size = Face.TARGET_SIDE_SIZE * 2;
+            final int size = Face.TARGET_FACE_SIDE * 2;
 
             stroke(192, 0, 0);
             line(0, 0, 0, size, 0, 0);

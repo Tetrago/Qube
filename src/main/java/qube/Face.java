@@ -8,11 +8,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 public class Face implements IFace
 {
-    public static final int TARGET_SIDE_SIZE = 300;
+    public static final int TARGET_FACE_SIDE = 300;
 
     private final int dimensions_;
     private final Color[] colors_;
@@ -38,7 +39,7 @@ public class Face implements IFace
         IntStream left = IntStream.iterate(dimensions * (dimensions - 1), n -> n - dimensions).limit(dimensions - 1);
 
         borderSeq_ = IntStream.concat(IntStream.concat(top, right), IntStream.concat(down, left)).toArray();
-        tileSize_ = TARGET_SIDE_SIZE / dimensions;
+        tileSize_ = TARGET_FACE_SIDE / dimensions;
     }
 
     /**
@@ -204,9 +205,10 @@ public class Face implements IFace
     /**
      * Draws face.
      *
-     * @param   canvas  Canvas to draw on.
+     * @param   canvas      Canvas to draw on.
+     * @param   shouldDraw  Checks if the index should be draw. Used for animating.
      */
-    public void draw(PApplet canvas)
+    public void draw(PApplet canvas, Predicate<Integer> shouldDraw)
     {
         canvas.pushMatrix();
         canvas.stroke(10);
@@ -222,7 +224,10 @@ public class Face implements IFace
                     Color.PURPLE.fill(canvas);
                 }
 
-                canvas.rect((x - dimensions_ * 0.5f) * tileSize_, (y - dimensions_ * 0.5f) * tileSize_, tileSize_, tileSize_);
+                if(shouldDraw.test(y * dimensions_ + x))
+                {
+                    canvas.rect((x - dimensions_ * 0.5f) * tileSize_, (y - dimensions_ * 0.5f) * tileSize_, tileSize_, tileSize_);
+                }
             }
         }
 

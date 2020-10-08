@@ -10,7 +10,6 @@ import java.util.concurrent.*;
 public class Algorithm3x3 implements Runnable
 {
     private final ICube cube_;
-    private CompletableFuture<Void> future_;
 
     public Algorithm3x3(ICube cube)
     {
@@ -19,13 +18,12 @@ public class Algorithm3x3 implements Runnable
 
     /**
      * Solves the cube.
+     *
+     * @return  Future of solve.
      */
-    public void solve()
+    public Future<Void> solve()
     {
-        if(future_ == null || future_.isDone())
-        {
-            future_ = CompletableFuture.runAsync(this);
-        }
+        return CompletableFuture.runAsync(this);
     }
 
     /**

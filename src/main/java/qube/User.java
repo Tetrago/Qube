@@ -3,11 +3,14 @@ package qube;
 import processing.core.PConstants;
 import qube.algorithm3x3.Algorithm3x3;
 
+import java.util.concurrent.Future;
+
 public class User
 {
     private final Cube cube_;
     private boolean ccw_ = false;
-    private Algorithm3x3 algorithm_;
+    private final Algorithm3x3 algorithm_;
+    private Future<Void> future_;
 
     public User(Cube cube)
     {
@@ -26,33 +29,37 @@ public class User
         {
             ccw_ = true;
         }
-
-        switch(Character.toLowerCase(key))
+        else if(key == 's')
         {
-        case 'f':
-            cube_.rotate(Side.FRONT, ccw_, 1);
-            break;
-        case 'b':
-            cube_.rotate(Side.BACK, ccw_, 1);
-            break;
-        case 'u':
-            cube_.rotate(Side.UP, ccw_, 1);
-            break;
-        case 'd':
-            cube_.rotate(Side.DOWN, ccw_, 1);
-            break;
-        case 'r':
-            cube_.rotate(Side.RIGHT, ccw_, 1);
-            break;
-        case 'l':
-            cube_.rotate(Side.LEFT, ccw_, 1);
-            break;
-        case 's':
             cube_.scramble(100, 200, 0);
-            break;
-        case ' ':
-            algorithm_.solve();
-            break;
+        }
+
+        if(future_ == null || future_.isDone())
+        {
+            switch(Character.toLowerCase(key))
+            {
+            case 'f':
+                future_ = cube_.rotate(Side.FRONT, ccw_, 1);
+                break;
+            case 'b':
+                future_ = cube_.rotate(Side.BACK, ccw_, 1);
+                break;
+            case 'u':
+                future_ = cube_.rotate(Side.UP, ccw_, 1);
+                break;
+            case 'd':
+                future_ = cube_.rotate(Side.DOWN, ccw_, 1);
+                break;
+            case 'r':
+                future_ = cube_.rotate(Side.RIGHT, ccw_, 1);
+                break;
+            case 'l':
+                future_ = cube_.rotate(Side.LEFT, ccw_, 1);
+                break;
+            case ' ':
+                future_ = algorithm_.solve();
+                break;
+            }
         }
     }
 
