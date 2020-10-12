@@ -23,7 +23,7 @@ public enum Location
         CORNER
     }
 
-    private Minor minor_;
+    private final Minor minor_;
 
     Location(Minor minor)
     {
@@ -37,7 +37,7 @@ public enum Location
      *
      * @return  Opposite location.
      */
-    Location opposite(Side from)
+    public Location opposite(Side from)
     {
         if(from == Side.UP || from == Side.DOWN)   // Top and bottom are arranged differently.
         {
@@ -58,6 +58,28 @@ public enum Location
                 return this;
             }
         }
+    }
+
+    /**
+     * Collapses corners into their side.
+     *
+     * @return  Side only corner.
+     */
+    public Location sideCorner()
+    {
+        switch(this)
+        {
+        case TOP_LEFT:
+        case LEFT:
+        case BOTTOM_LEFT:
+            return LEFT;
+        case TOP_RIGHT:
+        case RIGHT:
+        case BOTTOM_RIGHT:
+            return RIGHT;
+        }
+
+        throw new IllegalStateException("Unknown error occurred");
     }
 
     /**

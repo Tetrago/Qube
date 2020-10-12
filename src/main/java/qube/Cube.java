@@ -9,7 +9,7 @@ import java.util.concurrent.Future;
 
 public class Cube implements ICube
 {
-    private final Animator animator_ = new Animator(this, 5);
+    private final Animator animator_ = new Animator(this, 8);
     private final int dimensions_;
     private final Face[] faces_;
     private final int tileSize_;

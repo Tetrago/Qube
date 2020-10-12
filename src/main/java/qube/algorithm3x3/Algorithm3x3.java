@@ -1,7 +1,6 @@
 package qube.algorithm3x3;
 
 import qube.Color;
-import qube.Face;
 import qube.LocationSpace;
 import qube.Side;
 
@@ -31,7 +30,7 @@ public class Algorithm3x3 implements Runnable
      *
      * <p>Step one for solving a cube.</p>
      */
-    public void daisyFlip() throws ExecutionException, InterruptedException
+    private void daisyFlip() throws ExecutionException, InterruptedException
     {
         // The typical color is white, but its possible that the center has been rotated in some way.
         final Color white = cube_.getFace(Side.UP).getColor(Location.CENTER);
@@ -87,12 +86,131 @@ public class Algorithm3x3 implements Runnable
         }
     }
 
+    /**
+     * Place the white corners.
+     *
+     * <p>Step two for solving a cube.</p>
+     */
+    private void whiteCorner() throws ExecutionException, InterruptedException
+    {
+        final Color white = cube_.getFace(Side.UP).getColor(Location.CENTER);
+
+        ISearch search = (side, location, color) ->
+        {
+            if(location.getMinor() != Location.Minor.CORNER || color != white)
+            {
+                return false;
+            }
+
+            LocationSpace rotated = new LocationSpace(side, location, color);
+
+            for(int i = 0; i < 2; ++i)  // Checking if the corner is in the right place.
+            {
+                rotated = rotated.rotateCorner();
+
+                IFace face = cube_.getFace(rotated.getSide());
+                if(face.getColor(rotated.getLocation()) != face.getColor(Location.CENTER))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        LocationSpace ls;
+        while((ls = cube_.find(search).get()) != null)
+        {
+            if(ls.getSide() == Side.UP || ls.getSide() == Side.DOWN)
+            {
+                Side rot = ls.rotateCorner().getSide();
+                boolean ccw = ls.getSide() == Side.UP;
+
+                cube_.rotate(rot, ccw, 1).get();
+                cube_.rotate(Side.DOWN, false, 1).get();
+                cube_.rotate(rot, !ccw, 1).get();
+            }
+            else if(ls.rotateCorner().getSide() == Side.UP)
+            {
+                cube_.rotate(ls.getSide(), false, 1);
+                cube_.rotate(Side.DOWN, false, 1);
+                cube_.rotate(ls.getSide(), true, 1);
+            }
+            else if(ls.rotateCorner().rotateCorner().getSide() == Side.UP)
+            {
+                cube_.rotate(ls.getSide(), true, 1);
+                cube_.rotate(Side.DOWN, true, 1);
+                cube_.rotate(ls.getSide(), false, 1);
+            }
+            else
+            {
+                LocationSpace rotated = ls.rotateCorner();
+                if(ls.getLocation().sideCorner() == Location.LEFT)
+                {
+                    rotated = rotated.rotateCorner();
+                }
+
+                Color find = rotated.determineColor(cube_);
+                while(cube_.getFace(rotated.getSide()).getColor(Location.CENTER) != find)
+                {
+                    cube_.rotate(Side.UP, false, 1).get();
+                    cube_.rotate(Side.UP, false, 1, 1).get();
+                }
+
+                if(ls.getLocation().sideCorner() == Location.LEFT)
+                {
+                    cube_.rotate(ls.getSide(), true, 1).get();
+                    cube_.rotate(Side.DOWN, true, 1).get();
+                    cube_.rotate(ls.getSide(), false, 1).get();
+                }
+                else
+                {
+                    cube_.rotate(Side.DOWN, true, 1).get();
+                    cube_.rotate(rotated.getSide(), true, 1).get();
+                    cube_.rotate(Side.DOWN, false, 1).get();
+                    cube_.rotate(rotated.getSide(), false, 1).get();
+                }
+            }
+        }
+    }
+
+    /**
+     * Places the middle edges in the correct places.
+     *
+     * <p>Step three for solving a cube.</p>
+     */
+    private void sideEdgeSolver() throws ExecutionException, InterruptedException
+    {
+        final Color yellow = cube_.getFace(Side.DOWN).getColor(Location.CENTER);
+
+        ISearch search = (side, location, color) ->
+                side == Side.DOWN
+                        && cube_.getFace(side).getColor(location) != yellow
+                        && new LocationSpace(side, location, color).flipEdge().determineColor(cube_) != yellow
+                        && location.getMinor() == Location.Minor.EDGE;
+
+        LocationSpace ls;
+        while((ls = cube_.find(search).get()) != null)
+        {
+            LocationSpace flip = ls.flipEdge();
+            Color find = flip.determineColor(cube_);
+
+            while(cube_.getFace(flip.getSide()).getColor(Location.CENTER) != find)
+            {
+                cube_.rotate(Side.UP, false, 1).get();
+                cube_.rotate(Side.UP, false, 1, 1).get();
+            }
+        }
+    }
+
     @Override
     public void run()
     {
         try
         {
             daisyFlip();
+            whiteCorner();
+            sideEdgeSolver();
         }
         catch(ExecutionException | InterruptedException e)
         {
