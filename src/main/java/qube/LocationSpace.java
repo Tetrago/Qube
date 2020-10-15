@@ -46,7 +46,7 @@ public class LocationSpace
             switch(location_)
             {
             case TOP_LEFT: return new LocationSpace(Side.LEFT, Location.TOP_RIGHT, color_);
-            case TOP_RIGHT: return new LocationSpace(Side.UP, Location.BOTTOM_LEFT, color_);
+            case TOP_RIGHT: return new LocationSpace(Side.UP, Location.BOTTOM_RIGHT, color_);
             case BOTTOM_RIGHT: return new LocationSpace(Side.RIGHT, Location.BOTTOM_LEFT, color_);
             case BOTTOM_LEFT: return new LocationSpace(Side.DOWN, Location.TOP_LEFT, color_);
             }

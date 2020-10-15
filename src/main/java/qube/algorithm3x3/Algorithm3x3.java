@@ -132,15 +132,15 @@ public class Algorithm3x3 implements Runnable
             }
             else if(ls.rotateCorner().getSide() == Side.UP)
             {
-                cube_.rotate(ls.getSide(), false, 1);
-                cube_.rotate(Side.DOWN, false, 1);
-                cube_.rotate(ls.getSide(), true, 1);
+                cube_.rotate(ls.getSide(), false, 1).get();
+                cube_.rotate(Side.DOWN, false, 2).get();
+                cube_.rotate(ls.getSide(), true, 1).get();
             }
             else if(ls.rotateCorner().rotateCorner().getSide() == Side.UP)
             {
-                cube_.rotate(ls.getSide(), true, 1);
-                cube_.rotate(Side.DOWN, true, 1);
-                cube_.rotate(ls.getSide(), false, 1);
+                cube_.rotate(ls.getSide(), true, 1).get();
+                cube_.rotate(Side.DOWN, true, 1).get();
+                cube_.rotate(ls.getSide(), false, 1).get();
             }
             else
             {
@@ -183,22 +183,82 @@ public class Algorithm3x3 implements Runnable
     {
         final Color yellow = cube_.getFace(Side.DOWN).getColor(Location.CENTER);
 
-        ISearch search = (side, location, color) ->
-                side == Side.DOWN
-                        && cube_.getFace(side).getColor(location) != yellow
-                        && new LocationSpace(side, location, color).flipEdge().determineColor(cube_) != yellow
-                        && location.getMinor() == Location.Minor.EDGE;
+        ISearch search = (side, location, color) -> side == Side.DOWN
+                && location.getMinor() == Location.Minor.EDGE
+                && color != yellow
+                && new LocationSpace(side, location, color).flipEdge().determineColor(cube_) != yellow;
 
-        LocationSpace ls;
-        while((ls = cube_.find(search).get()) != null)
+        ISearch incorrect = (side, location, color) ->
         {
-            LocationSpace flip = ls.flipEdge();
-            Color find = flip.determineColor(cube_);
-
-            while(cube_.getFace(flip.getSide()).getColor(Location.CENTER) != find)
+            LocationSpace space = new LocationSpace(side, location, color);
+            for(int i = 0; i < 2; ++i)  // Used to test both sides of the edge.
             {
-                cube_.rotate(Side.UP, false, 1).get();
-                cube_.rotate(Side.UP, false, 1, 1).get();
+                if(side == Side.DOWN || side == Side.UP || location.getMinor() != Location.Minor.EDGE)
+                {
+                    return false;
+                }
+
+                space = space.flipEdge();
+            }
+
+            return color == yellow || space.determineColor(cube_) == yellow
+                    || color != cube_.getFace(side).getColor(Location.CENTER)
+                    || space.determineColor(cube_) != cube_.getFace(space.getSide()).getColor(Location.CENTER);
+        };
+
+        while(true)
+        {
+            LocationSpace ls;
+            while((ls = cube_.find(search).get()) != null)
+            {
+                LocationSpace flip = ls.flipEdge();
+                Color find = flip.determineColor(cube_);
+
+                while(cube_.getFace(flip.getSide()).getColor(Location.CENTER) != find)
+                {
+                    cube_.rotate(Side.UP, false, 1).get();
+                    cube_.rotate(Side.UP, false, 1, 1).get();
+                }
+
+                boolean sameColorIsClockwise =
+                        cube_.getFace(flip.getSide().move(Side.RIGHT)).getColor(Location.CENTER) == ls.getColor();
+
+                Side opposite = flip.getSide().move(sameColorIsClockwise ? Side.RIGHT : Side.LEFT);
+
+                cube_.rotate(Side.DOWN, sameColorIsClockwise, 1).get();
+                cube_.rotate(opposite, sameColorIsClockwise, 1).get();
+                cube_.rotate(Side.DOWN, !sameColorIsClockwise, 1).get();
+                cube_.rotate(opposite, !sameColorIsClockwise, 1).get();
+
+                cube_.rotate(Side.DOWN, !sameColorIsClockwise, 1).get();
+                cube_.rotate(flip.getSide(), !sameColorIsClockwise, 1).get();
+                cube_.rotate(Side.DOWN, sameColorIsClockwise, 1).get();
+                cube_.rotate(flip.getSide(), sameColorIsClockwise, 1).get();
+            }
+
+            boolean changed = false;
+            while((ls = cube_.find(incorrect).get()) != null)
+            {
+                if(ls.getLocation().sideCorner() != Location.RIGHT)
+                {
+                    ls = ls.flipEdge();
+                }
+
+                cube_.rotate(ls.getSide(), true, 1);
+                cube_.rotate(Side.DOWN, false, 1);
+                cube_.rotate(ls.getSide(), false, 1);
+
+                cube_.rotate(Side.DOWN, false, 1);
+                cube_.rotate(ls.flipEdge().getSide(), false, 1);
+                cube_.rotate(Side.DOWN, true, 1);
+                cube_.rotate(ls.flipEdge().getSide(), true, 1);
+
+                changed = true;
+            }
+
+            if(!changed)
+            {
+                break;
             }
         }
     }

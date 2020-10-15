@@ -31,7 +31,7 @@ public class User
         }
         else if(key == 's')
         {
-            cube_.scramble(100, 200, 0);
+            cube_.scramble(2500, 5000, 0);
         }
 
         if(future_ == null || future_.isDone())

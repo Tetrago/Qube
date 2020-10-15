@@ -49,6 +49,70 @@ public enum Side
         }
     }
 
+    /**
+     * Move side in direction.
+     *
+     * @param   side    Direction to move.
+     *
+     * @return          New side.
+     */
+    public Side move(Side side)
+    {
+        switch(this)
+        {
+        case FRONT:
+            switch(side)
+            {
+            case UP: return UP;
+            case DOWN: return DOWN;
+            case RIGHT: return RIGHT;
+            case LEFT: return LEFT;
+            }
+        case BACK:
+            switch(side)
+            {
+            case UP: return UP;
+            case DOWN: return DOWN;
+            case RIGHT: return LEFT;
+            case LEFT: return RIGHT;
+            }
+        case UP:
+            switch(side)
+            {
+            case UP: return BACK;
+            case DOWN: return FRONT;
+            case RIGHT: return RIGHT;
+            case LEFT: return LEFT;
+            }
+        case DOWN:
+            switch(side)
+            {
+            case UP: return FRONT;
+            case DOWN: return BACK;
+            case RIGHT: return RIGHT;
+            case LEFT: return LEFT;
+            }
+        case RIGHT:
+            switch(side)
+            {
+            case UP: return UP;
+            case DOWN: return DOWN;
+            case RIGHT: return BACK;
+            case LEFT: return FRONT;
+            }
+        case LEFT:
+            switch(side)
+            {
+            case UP: return UP;
+            case DOWN: return DOWN;
+            case RIGHT: return FRONT;
+            case LEFT: return BACK;
+            }
+        }
+
+        throw new IllegalStateException("Unknown error occurred");
+    }
+
     public PVector getPosition() { return position_; }
     public PVector getRotation() { return rotation_; }
 

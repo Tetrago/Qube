@@ -4,8 +4,12 @@ import processing.core.PApplet;
 import processing.core.PVector;
 import qube.algorithm3x3.*;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public class Cube implements ICube
 {
@@ -112,15 +116,20 @@ public class Cube implements ICube
     @Override
     public Future<LocationSpace> find(ISearch search)
     {
+        final List<Side> sides = Arrays.stream(Side.values()).collect(Collectors.toList());
+        final List<Location> locations = Arrays.stream(Location.values()).collect(Collectors.toList());
+
         return CompletableFuture.supplyAsync(() ->
         {
             synchronized(mutex)
             {
-                for(Side side : Side.values())
+                Collections.shuffle(sides);
+                for(Side side : sides)
                 {
                     Face face = faces_[side.ordinal()];
 
-                    for(Location location : Location.values())
+                    Collections.shuffle(locations);
+                    for(Location location : locations)
                     {
                         Color color = face.getColor(location);
                         if(search.test(side, location, color))
