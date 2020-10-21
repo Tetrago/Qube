@@ -5,6 +5,8 @@ import qube.LocationSpace;
 import qube.Side;
 
 import java.util.concurrent.*;
+import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
 
 public class Algorithm3x3 implements Runnable
 {
@@ -193,7 +195,7 @@ public class Algorithm3x3 implements Runnable
             LocationSpace space = new LocationSpace(side, location, color);
             for(int i = 0; i < 2; ++i)  // Used to test both sides of the edge.
             {
-                if(side == Side.DOWN || side == Side.UP || location.getMinor() != Location.Minor.EDGE)
+                if(space.getSide() == Side.DOWN || space.getSide() == Side.UP || space.getLocation().getMinor() != Location.Minor.EDGE)
                 {
                     return false;
                 }
@@ -244,14 +246,14 @@ public class Algorithm3x3 implements Runnable
                     ls = ls.flipEdge();
                 }
 
-                cube_.rotate(ls.getSide(), true, 1);
-                cube_.rotate(Side.DOWN, false, 1);
-                cube_.rotate(ls.getSide(), false, 1);
+                cube_.rotate(ls.getSide(), true, 1).get();
+                cube_.rotate(Side.DOWN, false, 1).get();
+                cube_.rotate(ls.getSide(), false, 1).get();
 
-                cube_.rotate(Side.DOWN, false, 1);
-                cube_.rotate(ls.flipEdge().getSide(), false, 1);
-                cube_.rotate(Side.DOWN, true, 1);
-                cube_.rotate(ls.flipEdge().getSide(), true, 1);
+                cube_.rotate(Side.DOWN, false, 1).get();
+                cube_.rotate(ls.flipEdge().getSide(), false, 1).get();
+                cube_.rotate(Side.DOWN, true, 1).get();
+                cube_.rotate(ls.flipEdge().getSide(), true, 1).get();
 
                 changed = true;
             }
@@ -263,6 +265,135 @@ public class Algorithm3x3 implements Runnable
         }
     }
 
+    /**
+     * Places the bottom colors.
+     *
+     * <p>Step four for solving a cube.</p>
+     */
+    private void star() throws ExecutionException, InterruptedException
+    {
+        DownShape shape;
+        while((shape = new DownShape(cube_)).determineFormation() != DownShape.Formation.STAR)
+        {
+            DownShape.Formation formation = shape.determineFormation();
+            if(formation == DownShape.Formation.HOOK || formation == DownShape.Formation.LINE)
+            {
+                Predicate<DownShape> valid = formation == DownShape.Formation.HOOK
+                        ? ds -> ds.north() && ds.west()
+                        : ds -> ds.east() && ds.west();
+
+                DownShape wtf;
+                while(!valid.test(wtf = new DownShape(cube_)))
+                {
+                    cube_.rotate(Side.DOWN, false, 1).get();
+                }
+            }
+
+            cube_.rotate(Side.FRONT, false, 1).get();
+            cube_.rotate(Side.LEFT, false, 1).get();
+            cube_.rotate(Side.DOWN, false, 1).get();
+
+            cube_.rotate(Side.LEFT, true, 1).get();
+            cube_.rotate(Side.DOWN, true, 1).get();
+            cube_.rotate(Side.FRONT, true, 1).get();
+        }
+    }
+
+    /**
+     * Fills in the bottom side.
+     *
+     * <p>Step five for solving a cube.</p>
+     */
+    private void downSide() throws ExecutionException, InterruptedException
+    {
+        final Color yellow = cube_.getFace(Side.DOWN).getColor(Location.CENTER);
+
+        DownCorner corner;
+        while((corner = new DownCorner(cube_)).determineFormation() != DownCorner.Formation.DONE)
+        {
+            switch(corner.determineFormation())
+            {
+            case NONE:
+                final BooleanSupplier test = () -> cube_.getFace(Side.BACK).getColor(Location.BOTTOM_RIGHT) == yellow
+                        && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_LEFT) == yellow
+                        && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_RIGHT) == yellow
+                        && cube_.getFace(Side.FRONT).getColor(Location.BOTTOM_LEFT) == yellow;
+
+                while(!test.getAsBoolean())
+                {
+                    cube_.rotate(Side.DOWN, false, 1).get();
+                }
+                break;
+            case TWO_LINE:
+                final BooleanSupplier supplier = () -> cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_RIGHT) == yellow
+                    && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_LEFT) == yellow;
+
+                while(!supplier.getAsBoolean())
+                {
+                    cube_.rotate(Side.DOWN, false, 1).get();
+                }
+                break;
+            case ONE:
+                while(!(new DownCorner(cube_).northEast()))
+                {
+                    cube_.rotate(Side.DOWN, false, 1).get();
+                }
+                break;
+            }
+
+            cube_.rotate(Side.LEFT, false, 1).get();
+            cube_.rotate(Side.DOWN, false, 1).get();
+            cube_.rotate(Side.LEFT, true, 1).get();
+            cube_.rotate(Side.DOWN, false, 1).get();
+            cube_.rotate(Side.LEFT, false, 1).get();
+            cube_.rotate(Side.DOWN, false, 2).get();
+            cube_.rotate(Side.LEFT, true, 1).get();
+        }
+    }
+
+    /**
+     * Completes most of the cube.
+     *
+     * <p>Step six for solving a cube.</p>
+     */
+    private void completeSolver() throws ExecutionException, InterruptedException
+    {
+        BooleanSupplier tester = () ->
+        {
+            IFace back = cube_.getFace(Side.BACK);
+            return back.getColor(Location.BOTTOM_LEFT) == back.getColor(Location.BOTTOM_RIGHT);
+        };
+
+        boolean repeat;
+        do
+        {
+            repeat = false;
+
+            int counter = 0;
+            while(!tester.getAsBoolean())
+            {
+                cube_.rotate(Side.DOWN, false, 1).get();
+                ++counter;
+
+                if(counter > 8)
+                {
+                    repeat = true;
+                    break;
+                }
+            }
+
+            cube_.rotate(Side.LEFT, true, 1).get();
+            cube_.rotate(Side.FRONT, false, 1).get();
+            cube_.rotate(Side.LEFT, true, 1).get();
+            cube_.rotate(Side.BACK, false, 2).get();
+            cube_.rotate(Side.LEFT, false, 1).get();
+            cube_.rotate(Side.FRONT, true, 1).get();
+            cube_.rotate(Side.LEFT, true, 1).get();
+            cube_.rotate(Side.BACK, false, 2).get();
+            cube_.rotate(Side.LEFT, false, 2).get();
+        } while(repeat);
+    }
+
     @Override
     public void run()
     {
@@ -271,6 +402,9 @@ public class Algorithm3x3 implements Runnable
             daisyFlip();
             whiteCorner();
             sideEdgeSolver();
+            star();
+            downSide();
+            completeSolver();
         }
         catch(ExecutionException | InterruptedException e)
         {
