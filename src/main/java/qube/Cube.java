@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class Cube implements ICube
 {
-    private final Animator animator_ = new Animator(this, 20);
+    private final Animator animator_ = new Animator(this, 50);
     private final int dimensions_;
     private final Face[] faces_;
     private final int tileSize_;

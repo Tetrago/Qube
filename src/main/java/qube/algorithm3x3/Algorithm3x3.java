@@ -246,14 +246,14 @@ public class Algorithm3x3 implements Runnable
                     ls = ls.flipEdge();
                 }
 
-                cube_.rotate(ls.getSide(), true, 1).get();
-                cube_.rotate(Side.DOWN, false, 1).get();
-                cube_.rotate(ls.getSide(), false, 1).get();
-
+                cube_.rotate(ls.flipEdge().getSide(), true, 1).get();
                 cube_.rotate(Side.DOWN, false, 1).get();
                 cube_.rotate(ls.flipEdge().getSide(), false, 1).get();
+
+                cube_.rotate(Side.DOWN, false, 1).get();
+                cube_.rotate(ls.getSide(), false, 1).get();
                 cube_.rotate(Side.DOWN, true, 1).get();
-                cube_.rotate(ls.flipEdge().getSide(), true, 1).get();
+                cube_.rotate(ls.getSide(), true, 1).get();
 
                 changed = true;
             }
@@ -313,7 +313,7 @@ public class Algorithm3x3 implements Runnable
         {
             switch(corner.determineFormation())
             {
-            case NONE:
+            /*case NONE:
                 final BooleanSupplier test = () -> cube_.getFace(Side.BACK).getColor(Location.BOTTOM_RIGHT) == yellow
                         && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_LEFT) == yellow
                         && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_RIGHT) == yellow
@@ -323,10 +323,11 @@ public class Algorithm3x3 implements Runnable
                 {
                     cube_.rotate(Side.DOWN, false, 1).get();
                 }
-                break;
+                break;*/
             case TWO_LINE:
-                final BooleanSupplier supplier = () -> cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_RIGHT) == yellow
-                    && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_LEFT) == yellow;
+                final BooleanSupplier supplier = () -> (cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_RIGHT) == yellow
+                    && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_LEFT) == yellow)
+                        || cube_.getFace(Side.FRONT).getColor(Location.BOTTOM_LEFT) == yellow;
 
                 while(!supplier.getAsBoolean())
                 {
@@ -394,6 +395,50 @@ public class Algorithm3x3 implements Runnable
         } while(repeat);
     }
 
+    private void cycleEdges() throws ExecutionException, InterruptedException
+    {
+        cube_.rotate(Side.LEFT, false, 1).get();
+        cube_.rotate(Side.DOWN, true, 1).get();
+        cube_.rotate(Side.LEFT, false, 1).get();
+        cube_.rotate(Side.DOWN, false, 1).get();
+        cube_.rotate(Side.LEFT, false, 1).get();
+        cube_.rotate(Side.DOWN, false, 1).get();
+        cube_.rotate(Side.LEFT, false, 1).get();
+        cube_.rotate(Side.DOWN, true, 1).get();
+        cube_.rotate(Side.LEFT, true, 1).get();
+        cube_.rotate(Side.DOWN, true, 1).get();
+        cube_.rotate(Side.LEFT, false, 2).get();
+    }
+
+    /**
+     * Places bottom edges.
+     *
+     * <p>Step seven and the final for solving a cube.</p>
+     */
+    private void headlights() throws ExecutionException, InterruptedException
+    {
+        ISearch search = (side, location, color) -> location.getMinor() == Location.Minor.EDGE
+                && new LocationSpace(side, location, color).flipEdge().getSide() == Side.DOWN
+                && cube_.getFace(side).getColor(Location.CENTER) == color;
+
+        if(cube_.find(search).get() == null)
+        {
+            cycleEdges();
+        }
+
+        IFace back = cube_.getFace(Side.BACK);
+        while(back.getColor(Location.CENTER) != back.getColor(Location.BOTTOM))
+        {
+            cube_.rotate(Side.DOWN, false, 1).get();
+        }
+
+        IFace front = cube_.getFace(Side.FRONT);
+        while(front.getColor(Location.CENTER) != front.getColor(Location.BOTTOM))
+        {
+            cycleEdges();
+        }
+    }
+
     @Override
     public void run()
     {
@@ -405,6 +450,7 @@ public class Algorithm3x3 implements Runnable
             star();
             downSide();
             completeSolver();
+            headlights();
         }
         catch(ExecutionException | InterruptedException e)
         {
