@@ -12,7 +12,7 @@ public class Camera
     public static final float DEGREE_LIMIT = 90;
 
     private final float minDistanceFromCenter_;
-    private float distanceFromCenter_ = 350;
+    private float distanceFromCenter_ = 1000;
     private float mdx_ = -45, mdy_ = -45;
 
     public Camera()

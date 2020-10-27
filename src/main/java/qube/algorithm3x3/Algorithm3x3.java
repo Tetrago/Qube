@@ -313,17 +313,21 @@ public class Algorithm3x3 implements Runnable
         {
             switch(corner.determineFormation())
             {
-            /*case NONE:
-                final BooleanSupplier test = () -> cube_.getFace(Side.BACK).getColor(Location.BOTTOM_RIGHT) == yellow
+            case NONE:
+                final BooleanSupplier test = () -> (cube_.getFace(Side.BACK).getColor(Location.BOTTOM_RIGHT) == yellow
                         && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_LEFT) == yellow
                         && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_RIGHT) == yellow
-                        && cube_.getFace(Side.FRONT).getColor(Location.BOTTOM_LEFT) == yellow;
+                        && cube_.getFace(Side.FRONT).getColor(Location.BOTTOM_LEFT) == yellow)
+                        || (cube_.getFace(Side.LEFT).getColor(Location.BOTTOM_LEFT) == yellow
+                        && cube_.getFace(Side.LEFT).getColor(Location.BOTTOM_RIGHT) == yellow
+                        && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_LEFT) == yellow
+                        && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_RIGHT) == yellow);
 
                 while(!test.getAsBoolean())
                 {
                     cube_.rotate(Side.DOWN, false, 1).get();
                 }
-                break;*/
+                break;
             case TWO_LINE:
                 final BooleanSupplier supplier = () -> (cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_RIGHT) == yellow
                     && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_LEFT) == yellow)
@@ -395,19 +399,26 @@ public class Algorithm3x3 implements Runnable
         } while(repeat);
     }
 
-    private void cycleEdges() throws ExecutionException, InterruptedException
+    /**
+     * Cycles the bottom corners of the cube.
+     *
+     * <p>Used during the headlights step.</p>
+     *
+     * @param   cube    Cube to rotate the edges of.
+     */
+    private void cycleEdges(ICube cube) throws ExecutionException, InterruptedException
     {
-        cube_.rotate(Side.LEFT, false, 1).get();
-        cube_.rotate(Side.DOWN, true, 1).get();
-        cube_.rotate(Side.LEFT, false, 1).get();
-        cube_.rotate(Side.DOWN, false, 1).get();
-        cube_.rotate(Side.LEFT, false, 1).get();
-        cube_.rotate(Side.DOWN, false, 1).get();
-        cube_.rotate(Side.LEFT, false, 1).get();
-        cube_.rotate(Side.DOWN, true, 1).get();
-        cube_.rotate(Side.LEFT, true, 1).get();
-        cube_.rotate(Side.DOWN, true, 1).get();
-        cube_.rotate(Side.LEFT, false, 2).get();
+        cube.rotate(Side.LEFT, false, 1).get();
+        cube.rotate(Side.DOWN, true, 1).get();
+        cube.rotate(Side.LEFT, false, 1).get();
+        cube.rotate(Side.DOWN, false, 1).get();
+        cube.rotate(Side.LEFT, false, 1).get();
+        cube.rotate(Side.DOWN, false, 1).get();
+        cube.rotate(Side.LEFT, false, 1).get();
+        cube.rotate(Side.DOWN, true, 1).get();
+        cube.rotate(Side.LEFT, true, 1).get();
+        cube.rotate(Side.DOWN, true, 1).get();
+        cube.rotate(Side.LEFT, false, 2).get();
     }
 
     /**
@@ -419,15 +430,28 @@ public class Algorithm3x3 implements Runnable
     {
         ISearch search = (side, location, color) -> location.getMinor() == Location.Minor.EDGE
                 && new LocationSpace(side, location, color).flipEdge().getSide() == Side.DOWN
-                && cube_.getFace(side).getColor(Location.CENTER) == color;
+                && cube_.getFace(side).getColor(Location.BOTTOM_LEFT) == color
+                && cube_.getFace(side).getColor(Location.BOTTOM_RIGHT) == color;
 
         if(cube_.find(search).get() == null)
         {
-            cycleEdges();
+            cycleEdges(cube_);
         }
 
+        LocationSpace ls = cube_.find(search).get();
+
+        ICube remapped = new SideRemappedCube.Factory(cube_)
+                .remap(Side.BACK, ls.getSide())
+                .remap(Side.FRONT, ls.getSide().move(Side.LEFT).move(Side.LEFT))
+                .remap(Side.RIGHT, ls.getSide().move(Side.LEFT))
+                .remap(Side.LEFT, ls.getSide().move(Side.RIGHT))
+                .remap(Side.UP, ls.getSide().move(Side.UP))
+                .remap(Side.DOWN, ls.getSide().move(Side.DOWN))
+                .build();
+
         IFace back = cube_.getFace(Side.BACK);
-        while(back.getColor(Location.CENTER) != back.getColor(Location.BOTTOM))
+        while(back.getColor(Location.CENTER) != back.getColor(Location.BOTTOM)
+                || back.getColor(Location.CENTER) != back.getColor(Location.BOTTOM_LEFT))
         {
             cube_.rotate(Side.DOWN, false, 1).get();
         }
