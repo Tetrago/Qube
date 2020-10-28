@@ -378,9 +378,8 @@ public class Algorithm3x3 implements Runnable
             while(!tester.getAsBoolean())
             {
                 cube_.rotate(Side.DOWN, false, 1).get();
-                ++counter;
 
-                if(counter > 8)
+                if(++counter > 8)
                 {
                     repeat = true;
                     break;
@@ -450,7 +449,7 @@ public class Algorithm3x3 implements Runnable
 
         ICube remapped = SideRemappedCube.bind(cube_).rebase(Side.BACK, ls.getSide()).build();
 
-        IFace front = cube_.getFace(Side.FRONT);
+        IFace front = remapped.getFace(Side.FRONT);
         while(front.getColor(Location.CENTER) != front.getColor(Location.BOTTOM))
         {
             cycleEdges(remapped);
