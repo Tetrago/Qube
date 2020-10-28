@@ -430,15 +430,23 @@ public class Algorithm3x3 implements Runnable
     {
         ISearch search = (side, location, color) -> location.getMinor() == Location.Minor.EDGE
                 && new LocationSpace(side, location, color).flipEdge().getSide() == Side.DOWN
-                && cube_.getFace(side).getColor(Location.BOTTOM_LEFT) == color
-                && cube_.getFace(side).getColor(Location.BOTTOM_RIGHT) == color;
+                && cube_.getFace(side).getColor(Location.BOTTOM_LEFT) == color;
 
         if(cube_.find(search).get() == null)
         {
             cycleEdges(cube_);
         }
 
-        LocationSpace ls = cube_.find(search).get();
+        ISearch lineupSearch = (side, location, color) -> location.getMinor() == Location.Minor.EDGE
+                && new LocationSpace(side, location, color).flipEdge().getSide() == Side.DOWN
+                && cube_.getFace(side).getColor(Location.CENTER) == color
+                && cube_.getFace(side).getColor(Location.BOTTOM_LEFT) == color;
+
+        LocationSpace ls;
+        while((ls = cube_.find(lineupSearch).get()) == null)
+        {
+            cube_.rotate(Side.DOWN, false, 1).get();
+        }
 
         ICube remapped = new SideRemappedCube.Factory(cube_)
                 .remap(Side.BACK, ls.getSide())
@@ -449,17 +457,10 @@ public class Algorithm3x3 implements Runnable
                 .remap(Side.DOWN, ls.getSide().move(Side.DOWN))
                 .build();
 
-        IFace back = cube_.getFace(Side.BACK);
-        while(back.getColor(Location.CENTER) != back.getColor(Location.BOTTOM)
-                || back.getColor(Location.CENTER) != back.getColor(Location.BOTTOM_LEFT))
-        {
-            cube_.rotate(Side.DOWN, false, 1).get();
-        }
-
         IFace front = cube_.getFace(Side.FRONT);
         while(front.getColor(Location.CENTER) != front.getColor(Location.BOTTOM))
         {
-            cycleEdges();
+            cycleEdges(remapped);
         }
     }
 
