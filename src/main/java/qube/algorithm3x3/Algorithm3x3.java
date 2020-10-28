@@ -331,7 +331,7 @@ public class Algorithm3x3 implements Runnable
             case TWO_LINE:
                 final BooleanSupplier supplier = () -> (cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_RIGHT) == yellow
                     && cube_.getFace(Side.RIGHT).getColor(Location.BOTTOM_LEFT) == yellow)
-                        || cube_.getFace(Side.FRONT).getColor(Location.BOTTOM_LEFT) == yellow;
+                        || cube_.getFace(Side.FRONT).getColor(Location.BOTTOM_RIGHT) == yellow;
 
                 while(!supplier.getAsBoolean())
                 {
@@ -448,7 +448,7 @@ public class Algorithm3x3 implements Runnable
             cube_.rotate(Side.DOWN, false, 1).get();
         }
 
-        ICube remapped = new SideRemappedCube.Factory(cube_).rebase(Side.BACK, ls.getSide()).build();
+        ICube remapped = SideRemappedCube.bind(cube_).rebase(Side.BACK, ls.getSide()).build();
 
         IFace front = cube_.getFace(Side.FRONT);
         while(front.getColor(Location.CENTER) != front.getColor(Location.BOTTOM))

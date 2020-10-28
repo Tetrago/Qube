@@ -19,7 +19,7 @@ public class SideRemappedCube implements ICube
         private final ICube cube_;
         private final Side[] sides_;
 
-        public Factory(ICube cube)
+        private Factory(ICube cube)
         {
             cube_ = cube;
 
@@ -74,6 +74,11 @@ public class SideRemappedCube implements ICube
         {
             return new SideRemappedCube(cube_, sides_);
         }
+    }
+
+    public static Factory bind(ICube cube)
+    {
+        return new Factory(cube);
     }
 
     private SideRemappedCube(ICube cube, Side[] sides)
