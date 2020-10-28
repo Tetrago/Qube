@@ -3,6 +3,7 @@ package qube;
 import processing.core.PConstants;
 import qube.algorithm3x3.Algorithm3x3;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 public class User
@@ -58,6 +59,9 @@ public class User
                 break;
             case ' ':
                 future_ = algorithm_.solve();
+                break;
+            case '.':
+                future_ = StressBox.test(32, () -> new Cube(3, false));
                 break;
             }
         }

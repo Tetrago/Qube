@@ -251,4 +251,11 @@ public class Face implements IFace
         case BOTTOM_LEFT: return colors_[dimensions_ * dimensions_ - dimensions_];
         }
     }
+
+    @Override
+    public boolean isSolid()
+    {
+        final Color base = getColor(Location.CENTER);
+        return Arrays.stream(colors_).allMatch(c -> c == base);
+    }
 }

@@ -5,4 +5,5 @@ import qube.Color;
 public interface IFace
 {
     Color getColor(Location location);
+    boolean isSolid();
 }

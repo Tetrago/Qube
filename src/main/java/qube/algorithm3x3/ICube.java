@@ -51,4 +51,5 @@ public interface ICube
     Color[] getEdgeStrip(Side side, Side edge);
 
     IFace getFace(Side side);
+    boolean isComplete();
 }

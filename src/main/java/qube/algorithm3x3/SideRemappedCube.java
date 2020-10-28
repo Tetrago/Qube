@@ -111,6 +111,12 @@ public class SideRemappedCube implements ICube
         return cube_.getFace(getRemappedSide(side));
     }
 
+    @Override
+    public boolean isComplete()
+    {
+        return cube_.isComplete();
+    }
+
     /**
      * Gets the side remapped from {@code side}.
      *

@@ -15,6 +15,7 @@ public class Cube implements ICube
 {
     private final Animator animator_ = new Animator(this, 50);
     private final int dimensions_;
+    private final boolean animated_;
     private final Face[] faces_;
     private final int tileSize_;
     private final Object mutex = new Object();
@@ -23,10 +24,12 @@ public class Cube implements ICube
      * Constructs a cube with faces.
      *
      * @param   dimensions  Width and height of each face of the cube.
+     * @param   animated    Whether to animate this cube.
      */
-    public Cube(int dimensions)
+    public Cube(int dimensions, boolean animated)
     {
         dimensions_ = dimensions;
+        animated_ = animated;
         faces_ = new Face[6];
 
         Color[] colors = Color.values();
@@ -77,8 +80,15 @@ public class Cube implements ICube
             canvas.translate(pos.x * unit, pos.y * unit, pos.z * unit);
             canvas.rotate(side.getAngle(), rot.x, rot.y, rot.z);
 
-            animator_.apply(canvas, side);
-            faces_[side.ordinal()].draw(canvas, n -> !animator_.isBlacklisted(side, n));
+            if(animated_)
+            {
+                animator_.apply(canvas, side);
+                faces_[side.ordinal()].draw(canvas, n -> !animator_.isBlacklisted(side, n));
+            }
+            else
+            {
+                faces_[side.ordinal()].draw(canvas, n -> true);
+            }
 
             canvas.popMatrix();
         }
@@ -93,17 +103,19 @@ public class Cube implements ICube
             {
                 for(int i = 0; i < count; ++i)
                 {
-                    animator_.rotate(side, ccw, offset);
-
-                    synchronized(animator_)
+                    if(animated_)
                     {
-                        try
+                        animator_.rotate(side, ccw, offset);
+
+                        synchronized(animator_)
                         {
-                            animator_.wait();
-                        }
-                        catch(InterruptedException e)
-                        {
-                            e.printStackTrace();
+                            try
+                            {
+                                animator_.wait();
+                            } catch(InterruptedException e)
+                            {
+                                e.printStackTrace();
+                            }
                         }
                     }
 
@@ -221,6 +233,12 @@ public class Cube implements ICube
     public IFace getFace(Side side)
     {
         return faces_[side.ordinal()];
+    }
+
+    @Override
+    public boolean isComplete()
+    {
+        return Arrays.stream(faces_).allMatch(Face::isSolid);
     }
 
     public static class DirectionOrder
