@@ -239,7 +239,7 @@ public class Algorithm3x3 implements Runnable
             }
 
             boolean changed = false;
-            while((ls = cube_.find(incorrect).get()) != null)
+            if((ls = cube_.find(incorrect).get()) != null)
             {
                 if(ls.getLocation().sideCorner() != Location.RIGHT)
                 {
