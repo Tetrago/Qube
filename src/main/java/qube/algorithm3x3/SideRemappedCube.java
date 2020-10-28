@@ -46,6 +46,26 @@ public class SideRemappedCube implements ICube
         }
 
         /**
+         * Completely remaps the cube based on the mapping of {@code from} to {@code to}.
+         *
+         * @param   from    Side to remap.
+         * @param   to      Side to remap {@code from} to.
+         *
+         * @return          Self.
+         */
+        public Factory rebase(Side from, Side to)
+        {
+            remap(from, to);
+            remap(from.move(Side.LEFT).move(Side.LEFT), to.move(Side.LEFT).move(Side.LEFT));
+            remap(from.move(Side.LEFT), to.move(Side.LEFT));
+            remap(from.move(Side.RIGHT), to.move(Side.RIGHT));
+            remap(from.move(Side.UP), to.move(Side.UP));
+            remap(from.move(Side.DOWN), to.move(Side.DOWN));
+
+            return this;
+        }
+
+        /**
          * Creates a {@link SideRemappedCube} from configured values.
          *
          * @return  Constructed and configured {@link SideRemappedCube}.

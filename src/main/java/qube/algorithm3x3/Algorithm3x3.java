@@ -448,14 +448,7 @@ public class Algorithm3x3 implements Runnable
             cube_.rotate(Side.DOWN, false, 1).get();
         }
 
-        ICube remapped = new SideRemappedCube.Factory(cube_)
-                .remap(Side.BACK, ls.getSide())
-                .remap(Side.FRONT, ls.getSide().move(Side.LEFT).move(Side.LEFT))
-                .remap(Side.RIGHT, ls.getSide().move(Side.LEFT))
-                .remap(Side.LEFT, ls.getSide().move(Side.RIGHT))
-                .remap(Side.UP, ls.getSide().move(Side.UP))
-                .remap(Side.DOWN, ls.getSide().move(Side.DOWN))
-                .build();
+        ICube remapped = new SideRemappedCube.Factory(cube_).rebase(Side.BACK, ls.getSide()).build();
 
         IFace front = cube_.getFace(Side.FRONT);
         while(front.getColor(Location.CENTER) != front.getColor(Location.BOTTOM))
