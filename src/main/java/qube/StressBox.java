@@ -5,6 +5,7 @@ import qube.algorithm3x3.ICube;
 
 import java.util.concurrent.*;
 import java.util.function.Supplier;
+import java.util.zip.CheckedOutputStream;
 
 public class StressBox implements Runnable
 {
@@ -12,6 +13,12 @@ public class StressBox implements Runnable
 
     private final ICube[] cubes_;
 
+    /**
+     * Creates a stress tester.
+     *
+     * @param   count       Number of cubes to attempt to solve.
+     * @param   supplier    Supplier that providers new cubes.
+     */
     private StressBox(int count, Supplier<ICube> supplier)
     {
         cubes_ = new ICube[count];
@@ -38,7 +45,9 @@ public class StressBox implements Runnable
     public void run()
     {
         ExecutorService executor = Executors.newFixedThreadPool(MAX_THREADS);
+
         CountDownLatch latch = new CountDownLatch(cubes_.length);
+        CountDownLatch successes = new CountDownLatch(cubes_.length);
 
         for(int i = 0; i < cubes_.length; ++i)
         {
@@ -51,8 +60,17 @@ public class StressBox implements Runnable
                 {
                     new Algorithm3x3(cube).solve().get();
 
+                    if(cube.isComplete())
+                    {
+                        System.out.format("Solved cube (%d/%d)%n", index, cubes_.length);
+                        successes.countDown();
+                    }
+                    else
+                    {
+                        System.err.format("Failed to solve cube (%d/%d)%n", index, cubes_.length);
+                    }
+
                     latch.countDown();
-                    System.out.format("Finished solving cube (%d/%d)%n", index, cubes_.length);
                 }
                 catch(InterruptedException | ExecutionException e)
                 {
@@ -64,8 +82,16 @@ public class StressBox implements Runnable
         try
         {
             latch.await();
+            System.out.format("Cubes solved: (%d/%d).%n", cubes_.length - successes.getCount(), cubes_.length);
 
-            System.out.println("All cubes solved!");
+            if(successes.getCount() == 0)
+            {
+                System.out.println("All cubes solved!");
+            }
+            else
+            {
+                System.err.println("Failed to solve all cubes!");
+            }
         }
         catch(InterruptedException e)
         {
