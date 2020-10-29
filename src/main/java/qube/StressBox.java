@@ -57,11 +57,16 @@ public class StressBox implements Runnable
             {
                 try
                 {
+                    long last  = System.nanoTime();
+
                     new Algorithm3x3(cube).solve().get();
+
+                    long elapsed = System.nanoTime() - last;
+                    double seconds = elapsed * 0.000000001;
 
                     if(cube.isComplete())
                     {
-                        System.out.format("Solved cube (%d/%d)%n", index, cubes_.length);
+                        System.out.format("Solved cube (%d/%d) in %.6f seconds.%n", index, cubes_.length, seconds);
                         successes.countDown();
                     }
                     else
