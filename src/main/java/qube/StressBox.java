@@ -5,7 +5,6 @@ import qube.algorithm3x3.ICube;
 
 import java.util.concurrent.*;
 import java.util.function.Supplier;
-import java.util.zip.CheckedOutputStream;
 
 public class StressBox implements Runnable
 {

@@ -61,7 +61,7 @@ public class User
                 future_ = algorithm_.solve();
                 break;
             case '.':
-                future_ = StressBox.test(32, () -> new Cube(3, false));
+                future_ = StressBox.test(64, () -> new Cube(3, false));
                 break;
             }
         }

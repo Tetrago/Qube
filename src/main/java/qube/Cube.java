@@ -4,6 +4,7 @@ import processing.core.PApplet;
 import processing.core.PVector;
 import qube.algorithm3x3.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -150,9 +151,42 @@ public class Cube implements ICube
                         }
                     }
                 }
-
-                return null;
             }
+
+            return null;
+        });
+    }
+
+    @Override
+    public Future<List<LocationSpace>> findAll(ISearch search)
+    {
+        final List<Side> sides = Arrays.stream(Side.values()).collect(Collectors.toList());
+        final List<Location> locations = Arrays.stream(Location.values()).collect(Collectors.toList());
+
+        return CompletableFuture.supplyAsync(() ->
+        {
+            List<LocationSpace> spaces = new ArrayList<>();
+
+            synchronized(mutex)
+            {
+                Collections.shuffle(sides);
+                for(Side side : sides)
+                {
+                    Face face = faces_[side.ordinal()];
+
+                    Collections.shuffle(locations);
+                    for(Location location : locations)
+                    {
+                        Color color = face.getColor(location);
+                        if(search.test(side, location, color))
+                        {
+                            spaces.add(new LocationSpace(side, location, color));
+                        }
+                    }
+                }
+            }
+
+            return spaces;
         });
     }
 

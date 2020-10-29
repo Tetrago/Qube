@@ -4,6 +4,7 @@ import qube.Color;
 import qube.LocationSpace;
 import qube.Side;
 
+import java.util.List;
 import java.util.concurrent.Future;
 
 public interface ICube
@@ -39,6 +40,15 @@ public interface ICube
      * @return          {@link LocationSpace} or {@code null}.
      */
     Future<LocationSpace> find(ISearch search);
+
+    /**
+     * Finds all matching locations from conditions.
+     *
+     * @param   search  Search conditions.
+     *
+     * @return          {@link List<LocationSpace>} array.
+     */
+    Future<List<LocationSpace>> findAll(ISearch search);
 
     /**
      * Gets the edges around a side

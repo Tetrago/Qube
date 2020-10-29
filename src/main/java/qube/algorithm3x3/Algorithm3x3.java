@@ -357,45 +357,64 @@ public class Algorithm3x3 implements Runnable
     }
 
     /**
+     * Moves corners.
+     *
+     * @param   cube    Cube to operate on.
+     */
+    private void backCornerAlgorithm(ICube cube) throws ExecutionException, InterruptedException
+    {
+        cube.rotate(Side.LEFT, true, 1).get();
+        cube.rotate(Side.FRONT, false, 1).get();
+        cube.rotate(Side.LEFT, true, 1).get();
+        cube.rotate(Side.BACK, false, 2).get();
+        cube.rotate(Side.LEFT, false, 1).get();
+        cube.rotate(Side.FRONT, true, 1).get();
+        cube.rotate(Side.LEFT, true, 1).get();
+        cube.rotate(Side.BACK, false, 2).get();
+        cube.rotate(Side.LEFT, false, 2).get();
+    }
+
+    /**
      * Completes most of the cube.
      *
      * <p>Step six for solving a cube.</p>
      */
     private void completeSolver() throws ExecutionException, InterruptedException
     {
-        BooleanSupplier tester = () ->
-        {
-            IFace back = cube_.getFace(Side.BACK);
-            return back.getColor(Location.BOTTOM_LEFT) == back.getColor(Location.BOTTOM_RIGHT);
-        };
+        ISearch search = (side, location, color) -> location.getMinor() == Location.Minor.CENTER
+                && side != Side.DOWN && side != Side.UP
+                && cube_.getFace(side).getColor(Location.BOTTOM_LEFT) == color
+                && cube_.getFace(side).getColor(Location.BOTTOM_RIGHT) == color;
 
+        LocationSpace ls;
         boolean repeat;
+
         do
         {
             repeat = false;
+            int timeout = 0;
 
-            int counter = 0;
-            while(!tester.getAsBoolean())
+            while((ls = cube_.find(search).get()) == null)
             {
                 cube_.rotate(Side.DOWN, false, 1).get();
 
-                if(++counter > 8)
+                if(++timeout > 8)
                 {
                     repeat = true;
                     break;
                 }
             }
 
-            cube_.rotate(Side.LEFT, true, 1).get();
-            cube_.rotate(Side.FRONT, false, 1).get();
-            cube_.rotate(Side.LEFT, true, 1).get();
-            cube_.rotate(Side.BACK, false, 2).get();
-            cube_.rotate(Side.LEFT, false, 1).get();
-            cube_.rotate(Side.FRONT, true, 1).get();
-            cube_.rotate(Side.LEFT, true, 1).get();
-            cube_.rotate(Side.BACK, false, 2).get();
-            cube_.rotate(Side.LEFT, false, 2).get();
+            if(repeat)
+            {
+                backCornerAlgorithm(cube_);
+            }
         } while(repeat);
+
+        if(cube_.findAll(search).get().size() == 1)
+        {
+            backCornerAlgorithm(SideRemappedCube.bind(cube_).rebase(Side.BACK, ls.getSide()).build());
+        }
     }
 
     /**

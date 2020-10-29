@@ -4,6 +4,7 @@ import qube.Color;
 import qube.LocationSpace;
 import qube.Side;
 
+import java.util.List;
 import java.util.concurrent.Future;
 
 /**
@@ -97,6 +98,12 @@ public class SideRemappedCube implements ICube
     public Future<LocationSpace> find(ISearch search)
     {
         return cube_.find(search);
+    }
+
+    @Override
+    public Future<List<LocationSpace>> findAll(ISearch search)
+    {
+        return cube_.findAll(search);
     }
 
     @Override
